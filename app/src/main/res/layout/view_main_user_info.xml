@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:id="@+id/mainUserInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- 메인 유저 말풍선 -->
+        <TextView
+            android:id="@+id/mainMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/speech_bubble_main"
+            android:text="메인메시지"
+            android:gravity="center|top"
+            android:textColor="@android:color/black"
+            android:paddingTop="9dp"
+            android:paddingHorizontal="30dp"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- 핀 + 프로필 (외부 view_map_pin.xml 파일 사용) -->
+        <include
+            android:id="@+id/includeMainPin"
+            layout="@layout/view_map_pin" />
+
+        <!-- 닉네임 -->
+        <TextView
+            android:id="@+id/mainNickname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="닉네임"
+            android:gravity="center"
+            android:paddingHorizontal="10dp"
+            android:textColor="@android:color/black"
+            android:background="@drawable/nametag"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+</layout>

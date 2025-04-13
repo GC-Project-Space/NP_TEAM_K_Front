@@ -1,0 +1,29 @@
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <FrameLayout
+        android:id="@+id/myPinContainer"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/myPin"
+            android:src="@drawable/pin"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerInside" />
+
+        <ImageView
+            android:id="@+id/myProfileImage"
+            android:src="@drawable/basicprofile"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
+            android:translationY="-6dp"
+            android:scaleType="centerCrop"
+            android:padding="2dp" />
+
+    </FrameLayout>
+
+</layout>

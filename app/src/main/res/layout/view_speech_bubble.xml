@@ -3,7 +3,7 @@
     android:id="@+id/bubbleText"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:background="@drawable/rounded_speech_bubble"
+    android:background="@drawable/speech_bubble_sub"
     android:padding="8dp"
     android:textColor="@android:color/black"
     android:text="말풍선" />

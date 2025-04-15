@@ -78,6 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:scaleType="centerCrop"
+                android:adjustViewBounds="true"
                 android:src="@drawable/bg_dashoard"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -87,7 +88,7 @@
                 android:id="@+id/textView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="30dp"
+                android:layout_marginStart="20dp"
                 android:layout_marginTop="8dp"
                 android:text="대시보드"
                 android:textColor="@color/black"
@@ -99,8 +100,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="30dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginStart="20dp"
                 android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent">
@@ -127,7 +127,6 @@
                         android:id="@+id/text_dayhit_num"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
                         android:text="56"
                         android:textColor="@color/primary"
                         android:textSize="18dp"
@@ -152,8 +151,7 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="30dp"
+                android:layout_marginEnd="20dp"
                 android:layout_marginBottom="8dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/imageView">
@@ -180,7 +178,6 @@
                         android:id="@+id/text_weekhit_num"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
                         android:text="56"
                         android:textColor="@color/primary"
                         android:textSize="18dp"
@@ -206,10 +203,9 @@
 
         <android.widget.Button
             android:id="@+id/btn_myinfo_update"
-            android:layout_width="170dp"
+            android:layout_width="150dp"
             android:layout_height="35dp"
             android:layout_marginTop="20dp"
-            android:backgroundTint="@android:color/transparent"
             android:background="@drawable/btn_rounded_border"
             android:text="내정보 수정"
             android:textColor="@color/black80"
@@ -219,10 +215,9 @@
 
         <android.widget.Button
             android:id="@+id/btn_report_page"
-            android:layout_width="170dp"
+            android:layout_width="150dp"
             android:layout_height="35dp"
             android:layout_marginTop="20dp"
-            android:backgroundTint="@android:color/transparent"
             android:background="@drawable/btn_rounded_border"
             android:text="내 상태 레포트"
             android:textColor="@color/black80"

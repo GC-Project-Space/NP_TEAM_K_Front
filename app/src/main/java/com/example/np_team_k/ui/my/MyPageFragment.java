@@ -24,8 +24,6 @@ public class MyPageFragment extends Fragment {
         binding = FragmentMyPageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        final TextView textView = binding.textMyPage;
-        myPageViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
         return root;
     }
 

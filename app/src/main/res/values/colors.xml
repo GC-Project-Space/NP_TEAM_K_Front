@@ -10,4 +10,5 @@
 
     <color name="primary">#EC9500</color>
     <color name="black50">#80000000</color>
+    <color name="black80">#cc000000</color>
 </resources>

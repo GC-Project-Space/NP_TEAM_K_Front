@@ -12,7 +12,7 @@
         android:title="@string/title_list" />
 
     <item
-        android:id="@+id/navigation_my_pafge"
+        android:id="@+id/navigation_my_page"
         android:icon="@drawable/ic_person"
         android:title="@string/title_mypage" />
 

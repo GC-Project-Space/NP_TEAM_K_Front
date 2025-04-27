@@ -42,6 +42,7 @@ dependencies {
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
     implementation 'com.google.android.gms:play-services-maps:18.1.0'//google maps SDK
+    implementation "com.kakao.sdk:v2-user:2.17.0" // kakao SDK
     testImplementation libs.junit
     androidTestImplementation libs.ext.junit
     androidTestImplementation libs.espresso.core

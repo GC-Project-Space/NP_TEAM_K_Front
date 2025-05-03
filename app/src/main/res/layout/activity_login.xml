@@ -1,0 +1,52 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:padding="32dp">
+
+    <!-- App logo image -->
+    <ImageView
+        android:id="@+id/logoImage"
+        android:layout_width="125dp"
+        android:layout_height="127dp"
+        android:src="@drawable/logo_image"
+        android:contentDescription="app_logo"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/kakaoLoginButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.4" />
+
+    <!-- Kakao login button image -->
+    <ImageButton
+        android:id="@+id/kakaoLoginButton"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:src="@drawable/kakao_login_medium_wide"
+        android:background="@android:color/transparent"
+        android:contentDescription="카카오 로그인"
+        app:layout_constraintBottom_toTopOf="@id/guestLoginText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Guest login text (clickable) -->
+    <TextView
+        android:id="@+id/guestLoginText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="비회원으로 써볼래요"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:clickable="true"
+        android:focusable="true"
+        android:padding="12dp"
+        android:minHeight="48dp"
+        android:minWidth="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,7 +1,11 @@
 package com.example.np_team_k;
 
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -9,6 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
+
+import java.security.MessageDigest;
 
 
 public class LoginActivity extends AppCompatActivity {
@@ -18,6 +24,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        printKeyHash();
 
         KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
 
@@ -46,4 +54,31 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    private void printKeyHash() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(),
+                    PackageManager.GET_SIGNING_CERTIFICATES);
+
+            Signature[] signatures;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) { // API 28 이상
+                signatures = info.signingInfo.getApkContentsSigners();
+            } else {
+                // 하위 버전 (API 24~27) 대응
+                info = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_SIGNATURES);
+                signatures = info.signatures;
+            }
+
+            for (Signature signature : signatures) {
+                MessageDigest md = MessageDigest.getInstance("SHA");
+                md.update(signature.toByteArray());
+                String keyHash = Base64.encodeToString(md.digest(), Base64.NO_WRAP);
+                Log.d("KeyHash", "keyHash: " + keyHash);
+            }
+        } catch (Exception e) {
+            Log.e("KeyHash", "키 해시 추출 실패", e);
+        }
+    }
+
+
 }

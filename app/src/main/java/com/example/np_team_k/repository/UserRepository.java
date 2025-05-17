@@ -13,16 +13,19 @@ public class UserRepository {
     private final Context context;
 
     public UserRepository(Context context) {
-        this.context = context.getApplicationContext(); // context 보관
+        this.context = context.getApplicationContext();
     }
 
-    // 저장
+    // kakaoId와 isMember 모두 저장
     public void saveUser(User user) {
-        UserPreferences.INSTANCE.saveKakaoId(context, user.getKakaoId());
+        UserPreferences.INSTANCE.saveUser(context, user.getKakaoId(), user.getIsMember());
     }
 
-    // 조회 (Flow<Long> 반환)
     public Flow<String> getKakaoIdFlow() {
         return UserPreferences.INSTANCE.getKakaoId(context);
+    }
+
+    public Flow<Boolean> getIsMemberFlow() {
+        return UserPreferences.INSTANCE.getIsMember(context);
     }
 }

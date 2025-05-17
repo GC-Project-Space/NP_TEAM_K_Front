@@ -10,6 +10,9 @@ import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.np_team_k.domain.model.User;
+import com.example.np_team_k.repository.UserRepository;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
@@ -20,6 +23,9 @@ import java.security.MessageDigest;
 public class LoginActivity extends AppCompatActivity {
 
     private static final String KAKAO_NATIVE_APP_KEY = "9ff2b589f0a0c62b3b8b633d6c167074";
+    // 데이터 바인딩 사용
+    private UserRepository userRepository;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +37,9 @@ public class LoginActivity extends AppCompatActivity {
         printKeyHash();
 
         KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
+
+        // UserRepository 생성
+        userRepository = new UserRepository(this);
 
         ImageButton kakaoLoginButton = findViewById(R.id.kakaoLoginButton);
         kakaoLoginButton.setOnClickListener(view -> {
@@ -46,10 +55,12 @@ public class LoginActivity extends AppCompatActivity {
                             Log.e("KakaoUserInfo", "사용자 정보 요청 실패", meError);
                         } else {
                             if (user != null) {
-                                long kakaoId = user.getId(); // 클라이언트 고유 ID
+                                assert user.getId() != null;
+                                String kakaoId = user.getId().toString(); // 클라이언트 고유 ID
                                 Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
 
-                                //todo datastore에 userId랑 카카오 클라이언트 아이디랑 매핑)
+                                // datastore에 카카오클라이언트 아이디 저장
+                                userRepository.saveUser(new User(kakaoId, true));
 
                                 // 홈으로 이동
                                 goToNextScreen();

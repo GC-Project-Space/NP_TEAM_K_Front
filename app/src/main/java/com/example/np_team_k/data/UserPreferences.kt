@@ -1,6 +1,7 @@
 package com.example.np_team_k.data
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -17,12 +18,14 @@ val Context.userDataStore by preferencesDataStore(name = "user_prefs")
 object UserPreferences {
 
     private val KAKAO_ID_KEY = stringPreferencesKey("kakao_id")
+    private val IS_MEMBER_KEY = booleanPreferencesKey("is_member")
 
-    @OptIn(DelicateCoroutinesApi::class) // 메모리 누수를 방지를 위해 선언
-    fun saveKakaoId(context: Context, kakaoId: String) {
+    @OptIn(DelicateCoroutinesApi::class)
+    fun saveUser(context: Context, kakaoId: String, isMember: Boolean) {
         GlobalScope.launch {
             context.userDataStore.edit { prefs ->
                 prefs[KAKAO_ID_KEY] = kakaoId
+                prefs[IS_MEMBER_KEY] = isMember
             }
         }
     }
@@ -30,6 +33,12 @@ object UserPreferences {
     fun getKakaoId(context: Context): Flow<String> {
         return context.userDataStore.data.map { prefs ->
             prefs[KAKAO_ID_KEY] ?: ""
+        }
+    }
+
+    fun getIsMember(context: Context): Flow<Boolean> {
+        return context.userDataStore.data.map { prefs ->
+            prefs[IS_MEMBER_KEY] ?: false
         }
     }
 }

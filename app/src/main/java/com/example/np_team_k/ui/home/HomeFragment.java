@@ -3,8 +3,8 @@ package com.example.np_team_k.ui.home;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Point;
+import android.location.Location;
 import android.os.Bundle;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,11 +12,11 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -24,14 +24,20 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.np_team_k.R;
 import com.example.np_team_k.databinding.FragmentHomeBinding;
 import com.example.np_team_k.databinding.ViewMainUserInfoBinding;
+import com.example.np_team_k.network.PinResponse;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+
 import com.bumptech.glide.Glide;
-import java.util.List;
+
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
@@ -40,7 +46,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private HomeViewModel homeViewModel;
     private MapView mapView;
     private GoogleMap googleMap;
-    private GoogleMap.OnCameraMoveListener cameraMoveListener;  // 카메라 움직일 때 listener
+    private GoogleMap.OnCameraMoveListener cameraMoveListener; // 카메라 움직일 때 listener
+
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+    private LatLng myCurrentLocation = new LatLng(37.5665, 126.9780);  // 초기값
+
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
@@ -54,6 +65,9 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             moveMainUserViews();
         };
         googleMap.setOnCameraMoveListener(cameraMoveListener);
+
+        // ✅ 추가: 실시간 위치 업데이트 시작
+        startLocationUpdates();
 
 
         try {
@@ -70,6 +84,59 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             e.printStackTrace();
         }
 
+        homeViewModel.getPinList().observe(getViewLifecycleOwner(), pins -> {
+            if (pins != null && !pins.isEmpty()) {
+                boolean hasValidPin = false;
+
+                for (PinResponse.Pin pin : pins) {
+                    double lat = pin.getLatitude();
+                    double lng = pin.getLongitude();
+
+                    // ✅ 수정: 좌표 유효성 검사 추가
+                    if (lat != 0.0 && lng != 0.0) {
+                        addBalloonView(new LatLng(lat, lng), pin.getMessage(), pin.getWriterKakaoId());
+                        hasValidPin = true;
+                    } else {
+                        Log.e("HomeFragment", "잘못된 좌표: " + lat + ", " + lng);
+                    }
+                }
+
+                // ✅ 수정: 유효한 핀이 없을 경우 내 위치에 기본 핀 추가
+                if (!hasValidPin) {
+                    addBalloonView(myCurrentLocation, "현재 위치입니다", "myUser");
+                    homeViewModel.setSelectedUserLatLng(myCurrentLocation);
+                    homeViewModel.setSelectedUserId("myUser");
+                }
+            } else {
+                // ✅ 수정: 핀이 없을 경우 내 위치에 기본 핀 추가
+                addBalloonView(myCurrentLocation, "현재 위치입니다", "myUser");
+                homeViewModel.setSelectedUserLatLng(myCurrentLocation);
+                homeViewModel.setSelectedUserId("myUser");
+            }
+        });
+
+
+
+
+        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), message -> {  // 추가된 코드
+            if (message != null) {  // 추가된 코드
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();  // 추가된 코드
+            }  // 추가된 코드
+        });  // 추가된 코드
+
+        // 현재 위치를 기준으로 핀 데이터를 가져옴
+        // 현재 위치 설정
+        LatLng myLocation = new LatLng(37.5665, 126.9780);
+
+// ✅ 동적으로 파라미터 설정
+        double latitude = myLocation.latitude;
+        double longitude = myLocation.longitude;
+        String sort = "distance";  // 거리순 정렬
+        String kakaoId = "1234";  // 카카오 ID
+        homeViewModel.fetchPins(latitude, longitude, sort, kakaoId);  // 추가된 코드
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
+        /* //작동 테스트용 데이터
         //지도 좌표(LatLng)를 스크린 좌표(point)로 변환
         //sample 실제 데이터 받을 때는 loadMessagesFromViewModel();
         LatLng myLocation = new LatLng(37.5665, 126.9780);
@@ -81,8 +148,51 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         addBalloonView(userBLocation, "userB 메시지", "userB");
 
         homeViewModel.setSelectedUserLatLng(myLocation);
-        homeViewModel.setSelectedUserId("myUser");
+        homeViewModel.setSelectedUserId("myUser");*/
     }
+
+    // ✅ 추가: 실시간 위치 업데이트 메서드
+    private void startLocationUpdates() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
+
+        LocationRequest locationRequest = LocationRequest.create();
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5000);  // 5초마다 업데이트
+        locationRequest.setFastestInterval(2000);  // 최소 2초 간격
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) return;
+
+                for (Location location : locationResult.getLocations()) {
+                    double latitude = location.getLatitude();
+                    double longitude = location.getLongitude();
+                    myCurrentLocation = new LatLng(latitude, longitude);
+                    Log.d("HomeFragment", "실시간 위치 업데이트: " + latitude + ", " + longitude);
+
+                    // ✅ 수정: 내 위치 핀 갱신
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCurrentLocation, 15));
+                    moveMainUserViews();
+                }
+            }
+        };
+
+        if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestLocationPermission();
+            return;
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
+    // ✅ 추가: 위치 업데이트 중지 메서드
+    private void stopLocationUpdates() {
+        if (fusedLocationClient != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+
 
     private final ActivityResultLauncher<String[]> locationPermissionRequest =
             registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(), result -> {
@@ -222,7 +332,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         if (binding == null || googleMap == null) return;
 
         LatLng selectedLatLng = homeViewModel.getSelectedUserLatLng().getValue();
-        if (selectedLatLng == null) return;
+        if (selectedLatLng == null) selectedLatLng = myCurrentLocation;
 
         Point screenPoint = googleMap.getProjection().toScreenLocation(selectedLatLng);
 
@@ -277,12 +387,38 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
 
 
-    @Override public void onResume() { super.onResume(); mapView.onResume(); }
-    @Override public void onPause() { super.onPause(); mapView.onPause(); }
+    @Override
+    public void onResume() {
+        super.onResume();
+        mapView.onResume();
+        startLocationUpdates();  // ✅ 추가: 위치 업데이트 재개
+    }
+    @Override
+    public void onPause() {
+        super.onPause();
+        stopLocationUpdates();  // ✅ 수정: 위치 업데이트 중지
+        mapView.onPause();
+    }
     @Override public void onDestroyView() {
         super.onDestroyView();
+        stopLocationUpdates();  // ✅ 수정: 위치 업데이트 중지
         if (mapView != null) {
             mapView.onDestroy();
+        }
+        binding = null;
+        // ✅ 권한 체크 및 예외 처리 추가
+        if (googleMap != null) {
+            try {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                        ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    googleMap.setMyLocationEnabled(false);
+                    Log.d("HomeFragment", "위치 권한 허용 상태에서 MyLocation 비활성화 성공");
+                } else {
+                    Log.w("HomeFragment", "위치 권한이 없어 MyLocation 비활성화 불가");
+                }
+            } catch (SecurityException e) {
+                Log.e("HomeFragment", "위치 권한 설정 중 오류 발생: " + e.getMessage());
+            }
         }
         binding = null;
     }

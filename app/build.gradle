@@ -44,6 +44,12 @@ dependencies {
     implementation libs.lifecycle.viewmodel.ktx
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
+
+    // 데이터 스토어 사용 관련
+    implementation "androidx.datastore:datastore-preferences:1.1.0"
+    // 코루틴
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
     implementation 'com.google.android.gms:play-services-maps:18.1.0'//google maps SDK
     implementation "com.kakao.sdk:v2-user:2.17.0" // kakao SDK
     testImplementation libs.junit

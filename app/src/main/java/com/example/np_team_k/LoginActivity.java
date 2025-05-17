@@ -59,8 +59,12 @@ public class LoginActivity extends AppCompatActivity {
                                 String kakaoId = user.getId().toString(); // 클라이언트 고유 ID
                                 Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
 
+                                // todo 로그인 API 연결
+
+                                String nickname = "임시 닉네임";
+
                                 // datastore에 카카오클라이언트 아이디 저장
-                                userRepository.saveUser(new User(kakaoId, true));
+                                userRepository.saveUser(new User(kakaoId, nickname, true));
 
                                 // 홈으로 이동
                                 goToNextScreen();

@@ -18,13 +18,15 @@ val Context.userDataStore by preferencesDataStore(name = "user_prefs")
 object UserPreferences {
 
     private val KAKAO_ID_KEY = stringPreferencesKey("kakao_id")
+    private val NICKNAME_KEY = stringPreferencesKey("nickname")
     private val IS_MEMBER_KEY = booleanPreferencesKey("is_member")
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun saveUser(context: Context, kakaoId: String, isMember: Boolean) {
+    fun saveUser(context: Context, kakaoId: String, nickname: String, isMember: Boolean) {
         GlobalScope.launch {
             context.userDataStore.edit { prefs ->
                 prefs[KAKAO_ID_KEY] = kakaoId
+                prefs[NICKNAME_KEY] = nickname
                 prefs[IS_MEMBER_KEY] = isMember
             }
         }
@@ -33,6 +35,12 @@ object UserPreferences {
     fun getKakaoId(context: Context): Flow<String> {
         return context.userDataStore.data.map { prefs ->
             prefs[KAKAO_ID_KEY] ?: ""
+        }
+    }
+
+    fun getNickname(context: Context): Flow<String> {
+        return context.userDataStore.data.map { prefs ->
+            prefs[NICKNAME_KEY] ?: ""
         }
     }
 

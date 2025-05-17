@@ -25,10 +25,12 @@ public class UserRepository {
         );
     }
 
+    // 카카오 아이디 가져오기
     public Flow<String> getKakaoIdFlow() {
         return UserPreferences.INSTANCE.getKakaoId(context);
     }
 
+    // 지금 유저의 닉네임 가져오기
     public Flow<String> getNicknameFlow() {
         return UserPreferences.INSTANCE.getNickname(context);
     }

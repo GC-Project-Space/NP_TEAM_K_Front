@@ -25,6 +25,9 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //todo datastore에 저장된 카카오 아이디(userId랑 카카오 클라이언트 아이디랑 매핑)
+        // todo  isMember true가 트루면 로그인 스킵하고 mainActivity로 가기
+
         printKeyHash();
 
         KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
@@ -36,7 +39,24 @@ public class LoginActivity extends AppCompatActivity {
                     Log.e("KakaoLogin", "로그인 실패", error);
                 } else if (token != null) {
                     Log.i("KakaoLogin", "로그인 성공: " + token.getAccessToken());
-                    goToNextScreen();
+
+                    // 카카오 클라이언트 아이디 요청
+                    UserApiClient.getInstance().me((user, meError) -> {
+                        if (meError != null) {
+                            Log.e("KakaoUserInfo", "사용자 정보 요청 실패", meError);
+                        } else {
+                            if (user != null) {
+                                long kakaoId = user.getId(); // 클라이언트 고유 ID
+                                Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
+
+                                //todo datastore에 userId랑 카카오 클라이언트 아이디랑 매핑)
+
+                                // 홈으로 이동
+                                goToNextScreen();
+                            }
+                        }
+                        return null;
+                    });
                 }
                 return null;
             });
@@ -45,6 +65,10 @@ public class LoginActivity extends AppCompatActivity {
         TextView guestLoginText = findViewById(R.id.guestLoginText);
         guestLoginText.setOnClickListener(view -> {
             Log.i("GuestLogin", "비회원 로그인 시도");
+
+            // 랜덤 아이디 만들기 -> guest랑 랜덤 아이디 매핑
+            // todo : isMember false
+
             goToNextScreen();
         });
     }

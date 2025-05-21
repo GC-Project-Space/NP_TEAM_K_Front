@@ -31,32 +31,37 @@
 
         <!-- icons group -->
         <ImageView
+            android:id="@+id/icon_heart"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="4dp"
-            android:src="@drawable/ic_heart"
+            android:src="@drawable/ic_heart_empty"
             android:contentDescription="heart" />
 
         <ImageView
+            android:id="@+id/icon_funny"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="4dp"
-            android:src="@drawable/ic_sad"
+            android:src="@drawable/ic_funny_empty"
             android:contentDescription="ㅋㅋ" />
 
         <ImageView
+            android:id="@+id/icon_thumb"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="4dp"
-            android:src="@drawable/ic_thumb_up"
+            android:src="@drawable/ic_thumb_empty"
             android:contentDescription="thumb up" />
 
         <ImageView
+            android:id="@+id/icon_sad"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_marginStart="4dp"
-            android:src="@drawable/ic_comment"
-            android:contentDescription="comment" />
+            android:src="@drawable/ic_sad_empty"
+            android:contentDescription="sad" />
+
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

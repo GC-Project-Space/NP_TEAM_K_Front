@@ -1,5 +1,7 @@
 package com.example.np_team_k.network;
 
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
@@ -20,8 +22,9 @@ public interface HomeAPI {
     );
 
     // 상태 등록 (POST)
-    @POST("status")
-    Call<Void> postStatus(@Body PinRequest pinRequest);
+    @POST("/status")
+    Call<Void> postStatus(@Body PinRequest request);
+
 
     // 상태 삭제 (DELETE)
     @DELETE("status/{id}")

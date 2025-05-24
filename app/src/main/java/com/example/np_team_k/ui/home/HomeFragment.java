@@ -5,10 +5,15 @@ import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.location.Location;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -24,7 +29,11 @@ import androidx.lifecycle.ViewModelProvider;
 import com.example.np_team_k.R;
 import com.example.np_team_k.databinding.FragmentHomeBinding;
 import com.example.np_team_k.databinding.ViewMainUserInfoBinding;
+import com.example.np_team_k.network.HomeAPI;
+import com.example.np_team_k.network.PinRequest;
 import com.example.np_team_k.network.PinResponse;
+import com.example.np_team_k.network.ReactionAPI;
+import com.example.np_team_k.network.RetrofitClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -37,6 +46,16 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
 import com.bumptech.glide.Glide;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class HomeFragment extends Fragment implements OnMapReadyCallback {
@@ -51,6 +70,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private FusedLocationProviderClient fusedLocationClient;
     private LocationCallback locationCallback;
     private LatLng myCurrentLocation = new LatLng(37.5665, 126.9780);  // 초기값
+    private boolean messageSubmitted = false; //중복 등록 방지
+    private String currentSelectedReaction = null; // 현재 선택된 reaction 상태를 저장할 변수
 
 
     @Override
@@ -128,11 +149,12 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // 현재 위치 설정
         LatLng myLocation = new LatLng(37.5665, 126.9780);
 
-// ✅ 동적으로 파라미터 설정
+        // 동적으로 파라미터 설정
         double latitude = myLocation.latitude;
         double longitude = myLocation.longitude;
         String sort = "distance";  // 거리순 정렬
-        String kakaoId = "1234";  // 카카오 ID
+        String kakaoId = requireActivity().getIntent().getStringExtra("kakaoId");  // 카카오 ID
+        homeViewModel.setMyKakaoId(kakaoId); // 실제 카카오 ID 저장
         homeViewModel.fetchPins(latitude, longitude, sort, kakaoId);  // 추가된 코드
 
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
@@ -230,6 +252,57 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         mainUserInfoBinding = binding.includeMainUserInfo;
 
+        FrameLayout iconGroupBox = mainUserInfoBinding.getRoot().findViewById(R.id.reactionBox);
+
+        // 이모지 아이콘 뷰 참조
+        View iconGroupView = mainUserInfoBinding.getRoot().findViewById(R.id.iconGroup);
+        ImageView heart = mainUserInfoBinding.getRoot().findViewById(R.id.icon_heart);
+        ImageView funny = mainUserInfoBinding.getRoot().findViewById(R.id.icon_funny);
+        ImageView thumb = mainUserInfoBinding.getRoot().findViewById(R.id.icon_thumb);
+        ImageView sad = mainUserInfoBinding.getRoot().findViewById(R.id.icon_sad);
+
+
+        View.OnClickListener reactionClickListener = v -> {
+            String clicked = null;
+            int emptyRes = 0, fullRes = 0;
+
+            if (v.getId() == R.id.icon_heart) {
+                clicked = "like"; emptyRes = R.drawable.ic_heart_empty; fullRes = R.drawable.ic_heart_full;
+            } else if (v.getId() == R.id.icon_funny) {
+                clicked = "funny"; emptyRes = R.drawable.ic_funny_empty; fullRes = R.drawable.ic_funny_full;
+            } else if (v.getId() == R.id.icon_thumb) {
+                clicked = "best"; emptyRes = R.drawable.ic_thumb_empty; fullRes = R.drawable.ic_thumb_full;
+            } else if (v.getId() == R.id.icon_sad) {
+                clicked = "sad"; emptyRes = R.drawable.ic_sad_empty; fullRes = R.drawable.ic_sad_full;
+            }
+
+            // 상태 변경
+            if (clicked != null) {
+                boolean isSame = clicked.equals(currentSelectedReaction);
+
+                // 모두 초기화
+                heart.setImageResource(R.drawable.ic_heart_empty);
+                funny.setImageResource(R.drawable.ic_funny_empty);
+                thumb.setImageResource(R.drawable.ic_thumb_empty);
+                sad.setImageResource(R.drawable.ic_sad_empty);
+
+                // 토글 설정
+                if (!isSame) {
+                    ((ImageView) v).setImageResource(fullRes);
+                    currentSelectedReaction = clicked;
+                    sendReactionToServer(clicked); // ✅ 서버에 반영
+                } else {
+                    currentSelectedReaction = null;
+                    sendReactionToServer(null); // ✅ 서버에서 제거 요청
+                }
+            }
+        };
+
+        heart.setOnClickListener(reactionClickListener);
+        funny.setOnClickListener(reactionClickListener);
+        thumb.setOnClickListener(reactionClickListener);
+        sad.setOnClickListener(reactionClickListener);
+
         //(핀 + 프로필 불러오기)
         ImageView profileImage = mainUserInfoBinding.includeMainPin.myProfileImage;
 
@@ -243,9 +316,96 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 .circleCrop()                            // 동그랗게 자르기
                 .into(profileImage);
 
+        TextView nicknameText = mainUserInfoBinding.mainNickname;
+        EditText inputField = mainUserInfoBinding.mainMessage;
+
         //기본 유저아이디 관찰해서 바뀌면 업데이트
         homeViewModel.getSelectedUserId().observe(getViewLifecycleOwner(), userId -> {
             updateMainAndSubViews(userId);
+
+            // 핀 목록에서 선택된 유저와 일치하는 핀을 찾아 닉네임과 메시지 업데이트
+            List<PinResponse.Pin> pinList = homeViewModel.getPinList().getValue();
+            if (pinList != null) {
+                for (PinResponse.Pin pin : pinList) {
+                    // writerKakaoId가 userId와 같은 핀이면 해당 핀의 정보를 표시
+                    if (pin.getWriterKakaoId().equals(userId)) {
+                        nicknameText.setText(pin.getWriterKakaoId());
+                        inputField.setText(pin.getMessage());
+                        inputField.setEnabled(false);// 메시지 업데이트
+                        return;
+                    }
+                }
+            }
+
+            // 내 핀(myUser)의 메시지는 ViewModel에서 가져옴 → 내 ID와 내 메시지 사용
+            if ("myUser".equals(userId)) {
+                homeViewModel.getMyKakaoId().observe(getViewLifecycleOwner(), kakaoId -> {
+                    nicknameText.setText(kakaoId);
+                });
+                inputField.setHint("메시지를 입력하세요 (최대 20자)");
+                inputField.setEnabled(true);
+                inputField.setText("");
+                messageSubmitted = false;
+            }
+
+            if (userId != null && iconGroupBox != null) {
+                iconGroupBox.setVisibility("myUser".equals(userId) ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        inputField.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE ||
+                    (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER && event.getAction() == KeyEvent.ACTION_DOWN)) {
+
+                String message = inputField.getText().toString().trim();
+                if (!messageSubmitted && !message.isEmpty()) {
+                    messageSubmitted = true;
+
+                    String kakaoId = homeViewModel.getMyKakaoId().getValue();
+                    if (kakaoId == null) return false;
+
+                    LatLng fixedLocation = myCurrentLocation;  // 🔒 고정 위치 저장
+
+                    // 1. 서버로 등록
+                    PinRequest pinRequest = new PinRequest(kakaoId, message, fixedLocation.latitude, fixedLocation.longitude);
+                    HomeAPI api = RetrofitClient.getClient().create(HomeAPI.class);
+                    api.postStatus(pinRequest).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(getContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+
+                                // 2. 입력창 초기화 및 재사용 가능 상태로 되돌림
+                                inputField.setEnabled(true);           // 다시 활성화
+                                inputField.setText("");                // 입력창 비움
+                                messageSubmitted = false;              // 플래그 초기화
+                                inputField.clearFocus();
+
+                                // 3. ViewModel 상태 초기화 (현재 메시지는 없는 상태)
+                                homeViewModel.setMyMessage("");
+
+                                // 4. 서버에서 전체 pin 재조회
+                                homeViewModel.fetchPins(
+                                        fixedLocation.latitude, fixedLocation.longitude,
+                                        "distance", kakaoId
+                                );
+                            } else {
+                                Toast.makeText(getContext(), "등록 실패", Toast.LENGTH_SHORT).show();
+                                messageSubmitted = false;
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            Toast.makeText(getContext(), "네트워크 오류: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            messageSubmitted = false;
+                        }
+                    });
+                }
+
+                return true;
+            }
+            return false;
         });
 
         //선택좌표 바뀌면 핀 이동
@@ -255,6 +415,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         return root;
     }
+
+
 
     private void requestLocationPermission() {
         locationPermissionRequest.launch(new String[]{
@@ -380,6 +542,47 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             }
         }
         return null;
+    }
+
+    private void sendReactionToServer(String reactionType) {
+        String userId = homeViewModel.getSelectedUserId().getValue();
+        if (userId == null || userId.equals("myUser")) return; // 내 입력용 핀은 대상 아님
+
+        String kakaoId = homeViewModel.getMyKakaoId().getValue(); // 내 카카오 ID
+        if (kakaoId == null) return;
+
+        String pinId = homeViewModel.getPinIdByUserId(userId); // 선택된 유저의 핀 ID
+        if (pinId == null) return;
+
+        ReactionAPI api = RetrofitClient.getClient().create(ReactionAPI.class);
+        Call<ResponseBody> call;
+
+        if (reactionType != null) {
+            // ✅ 리액션 추가 요청
+            call = api.addReaction(pinId, reactionType, kakaoId);
+        } else {
+            // ✅ 리액션 제거 요청
+            String current = currentSelectedReaction;
+            if (current == null) return;  // 이전 상태도 없으면 무시
+            call = api.removeReaction(pinId, current, kakaoId);
+        }
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Reaction", "서버 반영 성공");
+                    // TODO: 필요한 경우 UI나 카운트 업데이트
+                } else {
+                    Log.e("Reaction", "서버 반영 실패: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("Reaction", "네트워크 오류: " + t.getMessage());
+            }
+        });
     }
 
 

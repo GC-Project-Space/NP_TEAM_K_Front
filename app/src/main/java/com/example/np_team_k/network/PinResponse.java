@@ -12,10 +12,28 @@ public class PinResponse {
     }
 
     public static class Pin {
+        private String id;
         private String writerKakaoId;
         private String message;
         private double latitude;
         private double longitude;
+        private ReactionCounts reactionCounts;
+        private String createdAt;
+        private String myReaction;
+
+        public static class ReactionCounts {
+            private int like;
+            private int sad;
+            private int best;
+            private int funny;
+            public int getLike() { return like; }
+            public int getSad() { return sad; }
+            public int getBest() { return best; }
+            public int getFunny() { return funny; }
+        }
+
+
+        public  String getId() { return id; }
 
         public String getWriterKakaoId() {
             return writerKakaoId;
@@ -34,5 +52,11 @@ public class PinResponse {
             Log.d("Pin", "Longitude: " + longitude);
             return longitude;
         }
+
+        public ReactionCounts getReactionCounts() { return reactionCounts; }
+
+        public String getCreatedAt() { return createdAt; }
+
+        public String getMyReaction() { return myReaction; }
     }
 }

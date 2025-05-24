@@ -1,0 +1,37 @@
+[33me69b06f[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/home-view[m[33m, [m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m list
+[33mb2249be[m feat/api연결; network폴더 추가, network_security_config.xml 추가
+[33mecae07e[m feat : 앱키 확인용 코드 삽입
+[33m63b6e4a[m 리스트 페이지
+[33mbac42cb[m Merge remote-tracking branch 'origin/feature/login' into dev 로그인 기능 dev에 merge
+[33m4ad2f91[m[33m ([m[1;32mbackup/dev-before-merge[m[33m)[m dev 최신으로 업데이트. .idea/폴더 충돌 해결+git commit에서 제외하도록 함
+[33m0293f4d[m[33m ([m[1;31morigin/feature/home-view[m[33m, [m[1;32mbackup/home-view-before-merge[m[33m)[m implementation 'androidx.constraintlayout:constraintlayout:2.1.4'라이브러리 추가로 에러 수정
+[33m5cbd421[m[33m ([m[1;31morigin/feature/login[m[33m, [m[1;32mfeature/login[m[33m)[m Implement Kakao login (UI, SDK setup, manifest & Gradle update)
+[33m6487bff[m Merge pull request #3 from GC-Project-Space/feature/mypage
+[33m88be92a[m[33m ([m[1;31morigin/feature/mypage[m[33m, [m[1;32mfeature/mypage[m[33m)[m feat : 뷰 수정
+[33m7749f80[m feat : 오타 수정
+[33m815c826[m feat : 리사이클러뷰 연결
+[33m34eb5f3[m feat : 나의 상태 아이템 색 변경
+[33mf1fb0d4[m feat : 리사이클러뷰 아이디 추가
+[33m2cb4757[m feat : 삭제한 텍스트뷰 코드 삭제
+[33me60faa0[m rename : 마이페이지 리스트 아이템 뷰 생성
+[33m7a658fa[m rename : drawble 이름 수정
+[33m9649a27[m feat : 마이페이지 뷰 구현
+[33m1f91fff[m feat : 나의 상태 조회 필터 버튼 구현
+[33mf8e50cb[m feat : 대시보드 사진 추가
+[33m3d694c2[m feat : 블랙80 컬러 추가
+[33m25729b3[m Merge branch 'dev' of https://github.com/GC-Project-Space/NP_TEAM_K_Front into dev
+[33m7595dc8[m Merge pull request #2 from GC-Project-Space/main
+[33ma318c62[m conflict 해결
+[33m4fe3594[m idea  파일 삭제
+[33ma05e5e7[m Update .gitignore and refresh tracked files
+[33m517be63[m :memo: docs : idea 파일 깃 이그노어 추가
+[33m1604fed[m :memo: docs : idea 파일 깃 이그노어 추가
+[33mb3fe692[m feat: 프로필 사진 추가&메인/서브 말풍선 전환 및 위치 계산 로직 수정
+[33m53d21cc[m Update README.md
+[33m4bc2a1b[m Merge pull request #1 from GC-Project-Space/feature/home-view
+[33m5dbbe20[m feat: 홈화면 google지도,유저핀,닉네임,유저말풍선,주변말풍선,네비게이션바 View 구현
+[33ma839f94[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m :sparkles: feat: 바텀네비게이션 세팅
+[33mf892fe2[m :sparkles: feat: 바텀네비게이션 세팅
+[33m107ce68[m init
+[33mb1b524e[m init
+[33m7af09aa[m Initial commit

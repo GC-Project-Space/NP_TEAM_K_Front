@@ -15,7 +15,7 @@ import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
 
 import java.security.MessageDigest;
-
+import java.util.UUID; //추가: guest ID 생성을 위한 UUID
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -36,7 +36,24 @@ public class LoginActivity extends AppCompatActivity {
                     Log.e("KakaoLogin", "로그인 실패", error);
                 } else if (token != null) {
                     Log.i("KakaoLogin", "로그인 성공: " + token.getAccessToken());
-                    goToNextScreen();
+
+                    // 사용자 id 요청
+                    UserApiClient.getInstance().me((user, meError) -> {
+                        if (meError != null) {
+                            Log.e("KakaoLogin", "사용자 정보 요청 실패", meError);
+                        } else {
+                            String kakaoId = String.valueOf(user.getId()); //Long → String
+                            Log.d("KakaoLogin", "사용자 ID: " + kakaoId);
+
+                            //다음 화면으로 ID 전달
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                            intent.putExtra("kakaoId", kakaoId);
+                            startActivity(intent);
+                            finish();
+                        }
+                        return null;
+                    });
+                    // goToNextScreen();
                 }
                 return null;
             });
@@ -45,7 +62,15 @@ public class LoginActivity extends AppCompatActivity {
         TextView guestLoginText = findViewById(R.id.guestLoginText);
         guestLoginText.setOnClickListener(view -> {
             Log.i("GuestLogin", "비회원 로그인 시도");
-            goToNextScreen();
+            //임의의 guest ID 생성 (UUID 일부)
+            String guestId = "guest_" + UUID.randomUUID().toString().substring(0, 8);
+            Log.d("GuestLogin", "임시 ID: " + guestId);
+
+            //다음 화면으로 ID 전달
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("kakaoId", guestId);
+            startActivity(intent);
+            finish();
         });
     }
 

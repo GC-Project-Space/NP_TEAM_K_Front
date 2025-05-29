@@ -44,6 +44,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.gson.Gson;
 
 import com.bumptech.glide.Glide;
 
@@ -72,6 +73,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private LatLng myCurrentLocation = new LatLng(37.5665, 126.9780);  // 초기값
     private boolean messageSubmitted = false; //중복 등록 방지
     private String currentSelectedReaction = null; // 현재 선택된 reaction 상태를 저장할 변수
+    private boolean cameraMoved = false;  // 지도 자동이동 제어 플래그
 
 
     @Override
@@ -79,6 +81,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         googleMap = map;
 
         googleMap.getUiSettings().setZoomControlsEnabled(true);
+
+        // 사용자가 지도 조작 시 자동 이동 비활성화
+        map.setOnCameraMoveStartedListener(reason -> {
+            if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
+                cameraMoved = true;
+            }
+        });
 
         // 카메라 이동 리스너 등록
         cameraMoveListener = () -> {
@@ -105,13 +114,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             e.printStackTrace();
         }
 
+
         homeViewModel.getPinList().observe(getViewLifecycleOwner(), pins -> {
+            map.clear();
             if (pins != null && !pins.isEmpty()) {
                 boolean hasValidPin = false;
 
                 for (PinResponse.Pin pin : pins) {
-                    double lat = pin.getLatitude();
-                    double lng = pin.getLongitude();
+                    if (pin.getWriterKakaoId() == null || pin.getMessage() == null || pin.getId() == null || pin.getLocation() == null) {
+                        Log.w("HomeFragment", "잘못된 핀 데이터 무시됨: " + new Gson().toJson(pin));
+                        continue;
+                    }
+                    double lat = pin.getLocation().getLatitude();
+                    double lng = pin.getLocation().getLongitude();
 
                     // ✅ 수정: 좌표 유효성 검사 추가
                     if (lat != 0.0 && lng != 0.0) {
@@ -193,8 +208,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     myCurrentLocation = new LatLng(latitude, longitude);
                     Log.d("HomeFragment", "실시간 위치 업데이트: " + latitude + ", " + longitude);
 
-                    // ✅ 수정: 내 위치 핀 갱신
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCurrentLocation, 15));
+                    // cameraMoved가 false일 때만 내 위치 핀 갱신
+                    if (!cameraMoved) {
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myCurrentLocation, 15));
+                    }
                     moveMainUserViews();
                 }
             }
@@ -328,7 +345,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             if (pinList != null) {
                 for (PinResponse.Pin pin : pinList) {
                     // writerKakaoId가 userId와 같은 핀이면 해당 핀의 정보를 표시
-                    if (pin.getWriterKakaoId().equals(userId)) {
+                    if (userId != null && userId.equals(pin.getWriterKakaoId())) {
                         nicknameText.setText(pin.getWriterKakaoId());
                         inputField.setText(pin.getMessage());
                         inputField.setEnabled(false);// 메시지 업데이트
@@ -446,7 +463,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         updateBalloonPosition(balloonView, latLng);
 
-        if (userId.equals("myUser")) {
+        if ("myUser".equals(userId)) {
             balloonView.setVisibility(View.GONE);
         }
 
@@ -594,6 +611,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     public void onResume() {
         super.onResume();
         mapView.onResume();
+        cameraMoved = false;
         startLocationUpdates();  // ✅ 추가: 위치 업데이트 재개
     }
     @Override

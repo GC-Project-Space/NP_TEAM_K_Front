@@ -42,7 +42,6 @@ public class HomeViewModel extends ViewModel {
     public HomeViewModel() {
         mText = new MutableLiveData<>();
         mText.setValue("This is home fragment");
-
         // fix my information at start
         selectedUserId.setValue("myUser");
     }
@@ -98,12 +97,12 @@ public class HomeViewModel extends ViewModel {
     public void fetchPins(double latitude, double longitude, String sort, String kakaoId) {
         HomeAPI api = RetrofitClient.getClient().create(HomeAPI.class);
 
-        api.getPins(latitude, longitude, sort, kakaoId).enqueue(new Callback<PinResponse>() {
+        api.getPins(latitude, longitude, sort, kakaoId).enqueue(new Callback<List<PinResponse.Pin>>() {
             @Override
-            public void onResponse(Call<PinResponse> call, Response<PinResponse> response) {
+            public void onResponse(Call<List<PinResponse.Pin>> call, Response<List<PinResponse.Pin>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<PinResponse.Pin> pins = response.body().getPins();
-                    Log.d("HTTP_RESPONSE_BODY", new Gson().toJson(response.body()));
+                    List<PinResponse.Pin> pins = response.body();
+                    Log.d("HTTP_RESPONSE_BODY", new Gson().toJson(pins));
 
                     // ✅ 빈 배열이 아닌지 확인
                     if (pins == null || pins.isEmpty()) {
@@ -114,21 +113,34 @@ public class HomeViewModel extends ViewModel {
 
                     // ✅ 유효하지 않은 좌표 처리
                     for (PinResponse.Pin pin : pins) {
-                        if (pin.getLatitude() == 0.0 && pin.getLongitude() == 0.0) {
-                            Log.e("HomeViewModel", "잘못된 좌표 (0.0, 0.0)로 인한 핀 추가 방지");
+                        if (pin.getLocation() == null ||
+                                (pin.getLocation().getLatitude() == 0.0 && pin.getLocation().getLongitude() == 0.0)) {
+                            Log.e("HomeViewModel", "잘못된 좌표 (0.0, 0.0)");
                             continue;
                         }
                     }
 
                     // 내 핀의 메시지를 추출해서 저장
                     for (PinResponse.Pin pin : pins) {
-                        if (pin.getWriterKakaoId().equals(kakaoId)) {
+                        if (pin.getWriterKakaoId() != null && pin.getWriterKakaoId().equals(kakaoId)) {
                             setMyMessage(pin.getMessage());
+                            break;
                         }
                     }
 
                     pinList.setValue(pins);
                     Log.d("HomeViewModel", "핀 목록 불러오기 성공: " + pins.size() + "개");
+                    Log.d("PinDebug", "총 핀 수: " + pins.size());
+                    for (PinResponse.Pin pin : pins) {
+                        String id = pin.getId();
+                        String kakaoIdVal = pin.getWriterKakaoId();
+                        String msg = pin.getMessage();
+                        double lat = pin.getLocation().getLatitude();
+                        double lng = pin.getLocation().getLongitude();
+
+                        Log.d("PinDebug", "핀: " + id + ", 작성자: " + kakaoIdVal + ", 메시지: " + msg + ", 위치: (" + lat + ", " + lng + ")");
+                    }
+
                 } else {
                     errorMessage.setValue("핀 데이터를 불러오지 못했습니다. 상태 코드: " + response.code());
                     Log.e("HomeViewModel", "응답 오류: " + response.message());
@@ -136,7 +148,7 @@ public class HomeViewModel extends ViewModel {
             }
 
             @Override
-            public void onFailure(Call<PinResponse> call, Throwable t) {
+            public void onFailure(Call<List<PinResponse.Pin>> call, Throwable t) {
                 errorMessage.setValue("네트워크 오류: " + t.getMessage());
                 Log.e("HomeViewModel", "네트워크 오류: " + t.getMessage());
             }
@@ -164,7 +176,7 @@ public class HomeViewModel extends ViewModel {
             return;
         }
 
-        // ✅ createdAt 자동 생성 (ISO 8601 형식)
+        // createdAt 자동 생성 (ISO 8601 형식)
         String createdAt = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
 
         // ✅ 초기 감정 카운트: 0으로 세팅

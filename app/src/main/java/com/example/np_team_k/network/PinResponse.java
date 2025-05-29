@@ -15,11 +15,26 @@ public class PinResponse {
         private String id;
         private String writerKakaoId;
         private String message;
-        private double latitude;
-        private double longitude;
+        private Location location;  // ✅ 기존 latitude, longitude를 중첩 구조 Location으로
         private ReactionCounts reactionCounts;
         private String createdAt;
         private String myReaction;
+
+        // ✅ 중첩 클래스: Location
+        public static class Location {
+            private double latitude;
+            private double longitude;
+
+            public double getLatitude() {
+                Log.d("Pin", "Latitude: " + latitude);
+                return latitude;
+            }
+
+            public double getLongitude() {
+                Log.d("Pin", "Longitude: " + longitude);
+                return longitude;
+            }
+        }
 
         public static class ReactionCounts {
             private int like;
@@ -43,14 +58,8 @@ public class PinResponse {
             return message;
         }
 
-        public double getLatitude() {
-            Log.d("Pin", "Latitude: " + latitude);
-            return latitude;
-        }
-
-        public double getLongitude() {
-            Log.d("Pin", "Longitude: " + longitude);
-            return longitude;
+        public Location getLocation() {
+            return location;
         }
 
         public ReactionCounts getReactionCounts() { return reactionCounts; }

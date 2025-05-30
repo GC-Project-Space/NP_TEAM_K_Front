@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.jetbrains.kotlin.android)
 }
 
 android {
@@ -33,6 +34,9 @@ android {
     buildFeatures {
         dataBinding true
     }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
 }
 
 dependencies {
@@ -44,9 +48,20 @@ dependencies {
     implementation libs.lifecycle.viewmodel.ktx
     implementation libs.navigation.fragment
     implementation libs.navigation.ui
+
+    // DataStore Preferences
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    // Kotlin Coroutines (DataStore 내부에서 사용됨 - Java 프로젝트도 필요)
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+
     implementation 'com.google.android.gms:play-services-maps:18.1.0'//google maps SDK
+
+    implementation libs.core.ktx// kakao SDK
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation "com.kakao.sdk:v2-user:2.17.0" // kakao SDK
+
     testImplementation libs.junit
     implementation 'com.github.bumptech.glide:glide:4.16.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.16.0'//add Glide

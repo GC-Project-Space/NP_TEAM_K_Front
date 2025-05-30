@@ -11,22 +11,22 @@
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="4dp"
-        android:src="@drawable/ic_heart" />
+        android:src="@drawable/ic_heart_empty" />
 
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="4dp"
-        android:src="@drawable/ic_sad" />
+        android:src="@drawable/ic_funny_empty" />
 
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
         android:layout_marginEnd="4dp"
-        android:src="@drawable/ic_thumb_up" />
+        android:src="@drawable/ic_thumb_empty" />
 
     <ImageView
         android:layout_width="24dp"
         android:layout_height="24dp"
-        android:src="@drawable/ic_comment" />
+        android:src="@drawable/ic_sad_empty" />
 </LinearLayout>

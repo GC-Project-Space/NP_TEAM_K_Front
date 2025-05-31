@@ -18,7 +18,7 @@ import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
 
 import java.security.MessageDigest;
-
+import java.util.UUID; //추가: guest ID 생성을 위한 UUID
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -48,6 +48,7 @@ public class LoginActivity extends AppCompatActivity {
                     Log.e("KakaoLogin", "로그인 실패", error);
                 } else if (token != null) {
                     Log.i("KakaoLogin", "로그인 성공: " + token.getAccessToken());
+
 
                     // 카카오 클라이언트 아이디 요청
                     UserApiClient.getInstance().me((user, meError) -> {
@@ -80,11 +81,15 @@ public class LoginActivity extends AppCompatActivity {
         TextView guestLoginText = findViewById(R.id.guestLoginText);
         guestLoginText.setOnClickListener(view -> {
             Log.i("GuestLogin", "비회원 로그인 시도");
+            //임의의 guest ID 생성 (UUID 일부)
+            String guestId = "guest_" + UUID.randomUUID().toString().substring(0, 8);
+            Log.d("GuestLogin", "임시 ID: " + guestId);
 
-            // 랜덤 아이디 만들기 -> guest랑 랜덤 아이디 매핑
-            // todo : isMember false
-
-            goToNextScreen();
+            //다음 화면으로 ID 전달
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("kakaoId", guestId);
+            startActivity(intent);
+            finish();
         });
     }
 

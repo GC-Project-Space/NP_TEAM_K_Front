@@ -7,18 +7,31 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
+        <FrameLayout
+            android:id="@+id/reactionBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:visibility="visible">
+            <include
+                layout="@layout/list_item_icon_group" />
+        </FrameLayout>
         <!-- 메인 유저 말풍선 -->
-        <TextView
+        <EditText
             android:id="@+id/mainMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/speech_bubble_main"
-            android:text="메인메시지"
+            android:hint="메시지를 입력하세요"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:maxLength="20"
             android:gravity="center|top"
             android:textColor="@android:color/black"
             android:paddingTop="9dp"
             android:paddingHorizontal="30dp"
             android:layout_marginBottom="4dp"/>
+
 
         <!-- 핀 + 프로필 (외부 view_map_pin.xml 파일 사용) -->
         <include

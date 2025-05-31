@@ -5,6 +5,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.content.Intent;
+
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -30,6 +32,12 @@ public class MyPageFragment extends Fragment {
 
         binding = FragmentMyPageBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        // 상태 레포트 페이지 이동
+        binding.btnReportPage.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), StatusReportActivity.class);
+            startActivity(intent);
+        });
 
         // 리사이클러뷰 세팅
         setupRecyclerView();

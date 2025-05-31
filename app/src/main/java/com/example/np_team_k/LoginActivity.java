@@ -10,6 +10,9 @@ import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.np_team_k.domain.model.User;
+import com.example.np_team_k.repository.UserRepository;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
@@ -20,14 +23,23 @@ import java.util.UUID; //추가: guest ID 생성을 위한 UUID
 public class LoginActivity extends AppCompatActivity {
 
     private static final String KAKAO_NATIVE_APP_KEY = "9ff2b589f0a0c62b3b8b633d6c167074";
+    // 데이터 바인딩 사용
+    private UserRepository userRepository;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //todo datastore에 저장된 카카오 아이디(userId랑 카카오 클라이언트 아이디랑 매핑)
+        // todo  isMember true가 트루면 로그인 스킵하고 mainActivity로 가기
+
         printKeyHash();
 
         KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
+
+        // UserRepository 생성
+        userRepository = new UserRepository(this);
 
         ImageButton kakaoLoginButton = findViewById(R.id.kakaoLoginButton);
         kakaoLoginButton.setOnClickListener(view -> {
@@ -37,23 +49,30 @@ public class LoginActivity extends AppCompatActivity {
                 } else if (token != null) {
                     Log.i("KakaoLogin", "로그인 성공: " + token.getAccessToken());
 
-                    // 사용자 id 요청
+
+                    // 카카오 클라이언트 아이디 요청
                     UserApiClient.getInstance().me((user, meError) -> {
                         if (meError != null) {
-                            Log.e("KakaoLogin", "사용자 정보 요청 실패", meError);
+                            Log.e("KakaoUserInfo", "사용자 정보 요청 실패", meError);
                         } else {
-                            String kakaoId = String.valueOf(user.getId()); //Long → String
-                            Log.d("KakaoLogin", "사용자 ID: " + kakaoId);
+                            if (user != null) {
+                                assert user.getId() != null;
+                                String kakaoId = user.getId().toString(); // 클라이언트 고유 ID
+                                Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
 
-                            //다음 화면으로 ID 전달
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                            intent.putExtra("kakaoId", kakaoId);
-                            startActivity(intent);
-                            finish();
+                                // todo 로그인 API 연결
+
+                                String nickname = "임시 닉네임";
+
+                                // datastore에 카카오클라이언트 아이디 저장
+                                userRepository.saveUser(new User(kakaoId, nickname, true));
+
+                                // 홈으로 이동
+                                goToNextScreen();
+                            }
                         }
                         return null;
                     });
-                    // goToNextScreen();
                 }
                 return null;
             });

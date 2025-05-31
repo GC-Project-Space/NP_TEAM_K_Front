@@ -62,7 +62,8 @@ public class LoginActivity extends AppCompatActivity {
                                 String kakaoId = user.getId().toString(); // 클라이언트 고유 ID
                                 Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
 
-                                // todo 로그인 API 연결
+                                // 로그인 API 연결
+                                loginApi(kakaoId);
 
                                 String nickname = "임시 닉네임";
 
@@ -89,6 +90,9 @@ public class LoginActivity extends AppCompatActivity {
             //임의의 guest ID 생성 (UUID 일부)
             String guestId = "guest_" + UUID.randomUUID().toString().substring(0, 8);
             Log.d("GuestLogin", "임시 ID: " + guestId);
+
+            //게스트 아이디로 로그인
+            loginApi(guestId);
 
             //다음 화면으로 ID 전달
             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
@@ -135,7 +139,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onSuccess(LoginResponse response) {
-                Log.d("로그인 성공", response.getNickname());
+                Log.d("로그인 API 성공", response.getNickname());
                 // TODO: 다음 화면 이동 등 처리
             }
 

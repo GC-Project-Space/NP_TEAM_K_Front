@@ -69,8 +69,11 @@ public class LoginActivity extends AppCompatActivity {
                                 // datastore에 카카오클라이언트 아이디 저장
                                 userRepository.saveUser(new User(kakaoId, nickname, true));
 
-                                // 홈으로 이동
-                                goToNextScreen();
+                                // ✅ MainActivity로 ID 전달
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.putExtra("kakaoId", kakaoId);
+                                startActivity(intent);
+                                finish();
                             }
                         }
                         return null;

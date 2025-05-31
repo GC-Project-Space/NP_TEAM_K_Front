@@ -35,6 +35,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
+import java.util.HashMap;
 
 public class StatusReportActivity extends AppCompatActivity {
 
@@ -42,7 +43,7 @@ public class StatusReportActivity extends AppCompatActivity {
     private PieChart empathyPieChart;
     private BarChart activityBarChart;
 
-    private String kakaoId = "testUser";
+    private String kakaoId = "1234";
     private ReportAPI reportAPI;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,24 +68,39 @@ public class StatusReportActivity extends AppCompatActivity {
             public void onResponse(Call<EmotionResponse> call, Response<EmotionResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     EmotionResponse emotionResponse = response.body();
-
                     int total = emotionResponse.getTotal();
-                    Map<String, Integer> counts = emotionResponse.getEmotionCounts();
+                    EmotionResponse.EmotionCounts emotionCounts = emotionResponse.getEmotionCounts();
 
-                    updateStatusPieChart(counts, total);
+                    if (emotionCounts != null) {
+                        Map<String, Integer> counts = new HashMap<>();
+                        counts.put("슬픔", emotionCounts.getSad());
+                        counts.put("불안", emotionCounts.getAnxious());
+                        counts.put("행복", emotionCounts.getHappy());
+                        counts.put("놀람", emotionCounts.getSurprise());
+                        counts.put("외로움", emotionCounts.getLonely());
+                        counts.put("화남", emotionCounts.getAngry());
+
+                        updateStatusPieChart(counts, total);
+                    } else {
+                        Log.e("API", "EmotionCounts가 null입니다.");
+                    }
+
+                    Log.d("API", "응답 성공 여부: " + response.isSuccessful());
+                    Log.d("API", "응답: " + response.toString());
                 } else {
-
                     Log.e("API", "응답 실패");
+                    Log.d("API", "응답 성공 여부: " + response.isSuccessful());
+                    Log.d("API", "응답: " + response.toString());
                 }
             }
 
             @Override
             public void onFailure(Call<EmotionResponse> call, Throwable t) {
-
                 Log.e("API", "네트워크 오류: " + t.getMessage());
             }
         });
     }
+
 
     private void updateStatusPieChart(Map<String, Integer> counts, int total) {
         ArrayList<PieEntry> entries = new ArrayList<>();

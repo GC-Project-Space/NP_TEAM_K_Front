@@ -9,7 +9,6 @@ public class ActivityResponse {
     private int sat;
     private int sun;
 
-    // getter 메서드
     public int getMon() { return mon; }
     public int getTus() { return tus; }
     public int getWen() { return wen; }

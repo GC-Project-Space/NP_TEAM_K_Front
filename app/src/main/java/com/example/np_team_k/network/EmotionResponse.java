@@ -1,21 +1,26 @@
 package com.example.np_team_k.network;
-
-import java.util.Map;
-
-/**
- * 감정 비율 API 응답 데이터 모델
- * 예: { "total": 30, "emotionCounts": { "슬픔": 40, "불안": 20, ... } }
- */
 public class EmotionResponse {
+
     private int total;
-    private Map<String, Integer> emotionCounts;
+    private EmotionCounts emotionCounts;
 
-    public int getTotal() {
-        return total;
-    }
+    public int getTotal() { return total; }
+    public EmotionCounts getEmotionCounts() { return emotionCounts; }
 
-    public Map<String, Integer> getEmotionCounts() {
-        return emotionCounts;
+    public static class EmotionCounts {
+        private int sad;
+        private int anxious;
+        private int happy;
+        private int surprise;
+        private int lonely;
+        private int angry;
+
+        public int getSad() { return sad; }
+        public int getAnxious() { return anxious; }
+        public int getHappy() { return happy; }
+        public int getSurprise() { return surprise; }
+        public int getLonely() { return lonely; }
+        public int getAngry() { return angry; }
     }
 }
 

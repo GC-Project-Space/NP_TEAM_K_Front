@@ -12,6 +12,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.np_team_k.domain.model.User;
+import com.example.np_team_k.network.login.LoginManager;
+import com.example.np_team_k.network.login.LoginResponse;
 import com.example.np_team_k.repository.UserRepository;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.common.KakaoSdk;
@@ -122,6 +124,23 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("KeyHash", "키 해시 추출 실패", e);
         }
+    }
+
+    // 로그인 API 콜
+    private void loginApi(String kakaoId){
+        LoginManager.login(kakaoId, new LoginManager.LoginCallback() {
+
+            @Override
+            public void onSuccess(LoginResponse response) {
+                Log.d("로그인 성공", response.getNickname());
+                // TODO: 다음 화면 이동 등 처리
+            }
+
+            @Override
+            public void onFailure() {
+                Log.e("로그인 실패", "서버 오류 또는 네트워크 문제");
+            }
+        });
     }
 
 

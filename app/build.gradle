@@ -52,9 +52,14 @@ dependencies {
     // DataStore Preferences
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
+    // LiveDataReactiveStreams 변환용
+    implementation "androidx.lifecycle:lifecycle-reactivestreams:2.6.1"
+
     // Kotlin Coroutines (DataStore 내부에서 사용됨 - Java 프로젝트도 필요)
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
+    // Flow → Publisher 변환용
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-reactive:1.7.3"
 
     implementation 'com.google.android.gms:play-services-maps:18.1.0'//google maps SDK
 

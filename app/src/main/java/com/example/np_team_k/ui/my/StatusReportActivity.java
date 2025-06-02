@@ -12,14 +12,19 @@ import retrofit2.Response;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.np_team_k.R;
 import com.example.np_team_k.ui.RoundedBarChartRenderer;
@@ -102,10 +107,16 @@ public class StatusReportActivity extends AppCompatActivity {
     }
 
 
+
+
+    // 감정 차트 수정 - 0이면 표시 안되게
     private void updateStatusPieChart(Map<String, Integer> counts, int total) {
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            entries.add(new PieEntry(entry.getValue(), entry.getKey()));
+            Integer value = entry.getValue();
+            if (value != null && value != 0) {
+                entries.add(new PieEntry(value, entry.getKey()));
+            }
         }
 
         // PieDataSet 설정
@@ -137,21 +148,49 @@ public class StatusReportActivity extends AppCompatActivity {
         centerText.setSpan(new StyleSpan(Typeface.BOLD), 8, centerText.length(), 0); // 숫자 굵게
         statusPieChart.setCenterText(centerText);
 
-        Legend legend = statusPieChart.getLegend();
-        legend.setEnabled(true);
-        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
-        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
-        legend.setDrawInside(false);
-        legend.setTextSize(12f);
-        legend.setForm(Legend.LegendForm.CIRCLE);
-
         statusPieChart.setDrawEntryLabels(false);
         statusPieChart.getDescription().setEnabled(false);
+        statusPieChart.getLegend().setEnabled(false);
         statusPieChart.setHoleRadius(60f);
         statusPieChart.setTransparentCircleRadius(0f);
 
         statusPieChart.invalidate();
+        setupStatusLegend();
+
+    }
+
+    private void setupStatusLegend() {
+        LinearLayout legendLayout = findViewById(R.id.statusLegendLayout);
+        legendLayout.removeAllViews(); // 중복 제거
+
+        String[] labels = {"슬픔", "불안", "행복", "놀람", "외로움", "화남"};
+        String[] colors = {"#04bfda", "#9b88ed", "#fb67ca", "#ffa84a", "#5dca18", "#F85C5C"};
+
+        for (int i = 0; i < labels.length; i++) {
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.HORIZONTAL);
+            item.setPadding(12, 8, 12, 8);
+            item.setGravity(Gravity.CENTER_VERTICAL);
+
+            View colorDot = new View(this);
+            LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(24, 24);
+            dotParams.setMargins(0, 0, 8, 0);
+            colorDot.setLayoutParams(dotParams);
+
+            GradientDrawable circle = (GradientDrawable) ContextCompat.getDrawable(this, R.drawable.legend_circle).mutate();
+            circle.setColor(Color.parseColor(colors[i]));
+            colorDot.setBackground(circle);
+
+            TextView label = new TextView(this);
+            label.setText(labels[i]);
+            label.setTextSize(14f);
+            label.setTextColor(Color.DKGRAY);
+
+            item.addView(colorDot);
+            item.addView(label);
+
+            legendLayout.addView(item);
+        }
     }
 
     private void getReactionData() {
@@ -176,11 +215,13 @@ public class StatusReportActivity extends AppCompatActivity {
             }
         });
     }
-
     private void updateEmpathyPieChart(Map<String, Integer> counts, int total) {
         ArrayList<PieEntry> entries = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : counts.entrySet()) {
-            entries.add(new PieEntry(entry.getValue(), entry.getKey()));
+            Integer value = entry.getValue();
+            if (value != null && value != 0) {
+                entries.add(new PieEntry(value, entry.getKey()));
+            }
         }
 
         PieDataSet dataSet = new PieDataSet(entries, "");
@@ -203,15 +244,12 @@ public class StatusReportActivity extends AppCompatActivity {
 
         empathyPieChart.setUsePercentValues(true);
         empathyPieChart.setData(data);
-
-        Legend legend = empathyPieChart.getLegend();
-        legend.setEnabled(true);
-        legend.setVerticalAlignment(Legend.LegendVerticalAlignment.BOTTOM);
-        legend.setHorizontalAlignment(Legend.LegendHorizontalAlignment.CENTER);
-        legend.setOrientation(Legend.LegendOrientation.HORIZONTAL);
-        legend.setDrawInside(false);
-        legend.setTextSize(12f);
-        legend.setForm(Legend.LegendForm.CIRCLE);
+        empathyPieChart.setDrawEntryLabels(false);
+        empathyPieChart.getDescription().setEnabled(false);
+        empathyPieChart.getLegend().setEnabled(false);
+        empathyPieChart.setHoleRadius(0f);
+        empathyPieChart.setTransparentCircleRadius(0f);
+        empathyPieChart.invalidate();
 
         TextView empathyCenterText = findViewById(R.id.empathyCenterText);
         SpannableString empathyText = new SpannableString("총 받은 공감수\n" + total);
@@ -219,12 +257,46 @@ public class StatusReportActivity extends AppCompatActivity {
         empathyText.setSpan(new StyleSpan(Typeface.BOLD), 9, empathyText.length(), 0);
         empathyCenterText.setText(empathyText);
 
-        empathyPieChart.setDrawEntryLabels(false);
-        empathyPieChart.getDescription().setEnabled(false);
-        empathyPieChart.setHoleRadius(0f);
-        empathyPieChart.setTransparentCircleRadius(0f);
-        empathyPieChart.invalidate();
+        setupEmpathyLegend();
     }
+
+    private void setupEmpathyLegend() {
+        LinearLayout legendLayout = findViewById(R.id.empathyLegendLayout);
+        legendLayout.removeAllViews();
+
+        String[] labels = {"공감해요", "슬퍼요", "최고", "웃겨요"};
+        String[] colors = {"#04bfda", "#9b88ed", "#fb67ca", "#ffa84a"};
+
+        for (int i = 0; i < labels.length; i++) {
+            LinearLayout item = new LinearLayout(this);
+            item.setOrientation(LinearLayout.HORIZONTAL);
+            item.setPadding(12, 8, 12, 8);
+            item.setGravity(Gravity.CENTER_VERTICAL);
+
+            View colorDot = new View(this);
+            LinearLayout.LayoutParams dotParams = new LinearLayout.LayoutParams(24, 24);
+            dotParams.setMargins(0, 0, 8, 0);
+            colorDot.setLayoutParams(dotParams);
+
+            GradientDrawable circle = (GradientDrawable) ContextCompat.getDrawable(this, R.drawable.legend_circle).mutate();
+            circle.setColor(Color.parseColor(colors[i]));
+            colorDot.setBackground(circle);
+
+            TextView label = new TextView(this);
+            label.setText(labels[i]);
+            label.setTextSize(14f);
+            label.setTextColor(Color.DKGRAY);
+
+            item.addView(colorDot);
+            item.addView(label);
+
+            legendLayout.addView(item);
+        }
+    }
+
+
+
+
 
     private void getActivityData() {
         reportAPI.getActivity(kakaoId).enqueue(new Callback<ActivityResponse>() {

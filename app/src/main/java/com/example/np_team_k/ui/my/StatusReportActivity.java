@@ -3,7 +3,7 @@ package com.example.np_team_k.ui.my;
 import com.example.np_team_k.network.ReportAPI;
 import com.example.np_team_k.network.EmotionResponse;
 import com.example.np_team_k.network.ReactionResponse;
-import com.example.np_team_k.network.ActivityResponse;
+import com.example.np_team_k.network.WeeklyActivityResponse;
 import com.example.np_team_k.network.RetrofitClient;
 
 import retrofit2.Call;
@@ -30,7 +30,6 @@ import com.example.np_team_k.R;
 import com.example.np_team_k.ui.RoundedBarChartRenderer;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.*;
@@ -299,13 +298,13 @@ public class StatusReportActivity extends AppCompatActivity {
 
 
     private void getActivityData() {
-        reportAPI.getActivity(kakaoId).enqueue(new Callback<ActivityResponse>() {
+        reportAPI.getWeeklyActivity(kakaoId).enqueue(new Callback<WeeklyActivityResponse>() {
             @Override
-            public void onResponse(Call<ActivityResponse> call, Response<ActivityResponse> response) {
+            public void onResponse(Call<WeeklyActivityResponse> call, Response<WeeklyActivityResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ActivityResponse activityResponse = response.body();
+                    WeeklyActivityResponse weeklyActivityResponse = response.body();
 
-                    updateActivityBarChart(activityResponse);
+                    updateActivityBarChart(weeklyActivityResponse);
 
                 } else {
                     Log.e("API", "Activity API 응답 실패");
@@ -313,17 +312,17 @@ public class StatusReportActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<ActivityResponse> call, Throwable t) {
+            public void onFailure(Call<WeeklyActivityResponse> call, Throwable t) {
                 Log.e("API", "Activity API 네트워크 오류: " + t.getMessage());
             }
         });
     }
 
-    private void updateActivityBarChart(ActivityResponse response) {
+    private void updateActivityBarChart(WeeklyActivityResponse response) {
         ArrayList<BarEntry> entries = new ArrayList<>();
         entries.add(new BarEntry(0, response.getMon()));
-        entries.add(new BarEntry(1, response.getTus()));
-        entries.add(new BarEntry(2, response.getWen()));
+        entries.add(new BarEntry(1, response.getTue()));
+        entries.add(new BarEntry(2, response.getWed()));
         entries.add(new BarEntry(3, response.getThu()));
         entries.add(new BarEntry(4, response.getFri()));
         entries.add(new BarEntry(5, response.getSat()));

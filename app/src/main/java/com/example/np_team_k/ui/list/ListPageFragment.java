@@ -29,6 +29,22 @@ public class ListPageFragment extends Fragment {
 
         viewModel.fetchStatusList(37, 127, "distance", "1234");
 
+        binding.btnSortPopular.setOnClickListener(v -> {
+            viewModel.fetchStatusList(37, 127, "popular", "1234");
+
+            // 상태 설정
+            binding.btnSortPopular.setSelected(true);
+            binding.btnSortLatest.setSelected(false);
+        });
+
+        binding.btnSortLatest.setOnClickListener(v -> {
+            viewModel.fetchStatusList(37, 127, "distance", "1234");
+
+            binding.btnSortPopular.setSelected(false);
+            binding.btnSortLatest.setSelected(true);
+
+        });
+
 
         // ListAdapter의 핵심 메서드
         viewModel.getItemList().observe(getViewLifecycleOwner(), list -> {

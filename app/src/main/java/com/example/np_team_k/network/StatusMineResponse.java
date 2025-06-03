@@ -9,12 +9,8 @@ public class StatusMineResponse {
 
     private String nickname;
     private String message;
-    private String emoji;
 
     private Location location;
-
-    @SerializedName("createdAt")
-    private String createdAt;
 
     // 내부 클래스: Location
     public static class Location {
@@ -43,15 +39,8 @@ public class StatusMineResponse {
         return message;
     }
 
-    public String getEmoji() {
-        return emoji;
-    }
-
     public Location getLocation() {
         return location;
     }
 
-    public String getCreatedAt() {
-        return createdAt;
-    }
 }

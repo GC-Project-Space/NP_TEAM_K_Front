@@ -82,7 +82,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     private boolean cameraMoved = false;  // 지도 자동이동 제어 플래그
     private boolean isMapMoving = false; // 지도 이동 여부 추적용 플래그
     boolean pinsAlreadyFetched = false; // 추가: 핀 중복 로딩 방지용
-    private final Map<String, View> balloonViewMap = new HashMap<>(); // ✅ 추가: 사용자 ID → 말풍선 View 매핑
+    private final Map<String, View> balloonViewMap = new HashMap<>(); // 추가: 사용자 ID → 말풍선 View 매핑
     private String currentPinUserId = ""; // 현재 선택된 핀의 사용자 ID 저장
     private String myKakaoId = "";
     private final Handler pinCheckHandler = new Handler(Looper.getMainLooper());
@@ -288,10 +288,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         mainUserInfoBinding = binding.includeMainUserInfo;
 
-        FrameLayout iconGroupBox = mainUserInfoBinding.getRoot().findViewById(R.id.reactionBox);
+        FrameLayout pinReactionBox = mainUserInfoBinding.getRoot().findViewById(R.id.pinReactionBox);
 
         // 이모지 아이콘 뷰 참조
-        View iconGroupView = mainUserInfoBinding.getRoot().findViewById(R.id.iconGroup);
+        View pinIconGroup = mainUserInfoBinding.getRoot().findViewById(R.id.pinIconGroup);
         ImageView heart = mainUserInfoBinding.getRoot().findViewById(R.id.icon_heart);
         ImageView funny = mainUserInfoBinding.getRoot().findViewById(R.id.icon_funny);
         ImageView thumb = mainUserInfoBinding.getRoot().findViewById(R.id.icon_thumb);
@@ -343,8 +343,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 messageSubmitted = false;
             }
 
-            if (userId != null && iconGroupBox != null) {
-                iconGroupBox.setVisibility("myUser".equals(userId) ? View.GONE : View.VISIBLE);
+            if (userId != null && pinIconGroup != null) {
+                pinIconGroup.setVisibility("myUser".equals(userId) ? View.GONE : View.VISIBLE);
             }
         });
 
@@ -444,6 +444,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
                     String userId = pin.getWriterKakaoId();
                     LatLng latLng = new LatLng(pin.getLocation().getLatitude(), pin.getLocation().getLongitude());
+                    String myId = homeViewModel.getMyKakaoId().getValue();
+                    String selectedId = homeViewModel.getSelectedUserId().getValue();
 
                     if (balloonViewMap.containsKey(userId)) {
                         removeBalloonByUserId(userId);
@@ -451,13 +453,24 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     addBalloonView(latLng, pin.getMessage(), userId);
                     // 이모지 UI 확인 로그 추가
                     View balloonView = balloonViewMap.get(userId);
+                    View pinView = binding.includeMainUserInfo.getRoot();
                     if (balloonView != null) {
                         View reactionBox = balloonView.findViewById(R.id.reactionBox);
+                        View pinReactionBox = pinView.findViewById(R.id.pinReactionBox);
                         if (reactionBox != null) {
-                            reactionBox.setVisibility(View.GONE);
-                            Log.d("EmojiUI", "reactionBox visible 여부: " + (reactionBox.getVisibility() == View.VISIBLE));
-                        } else {
-                            Log.w("EmojiUI", "reactionBox 찾을 수 없음 for userId: " + userId);
+                            boolean isMine = userId.equals(myId);
+                            boolean isSelected = userId.equals(selectedId);
+
+                            // ✅ 선택된 유저이고 내 핀이 아닐 경우만 VISIBLE 유지
+                            if (isSelected && !isMine) {
+                                balloonView.setVisibility(View.GONE);
+                                //reactionBox.setVisibility(View.VISIBLE);
+                                pinReactionBox.setVisibility(View.VISIBLE);
+                                Log.d("EmojiUI", "[PinList] 재선택된 reactionBox 유지 → userId: " + userId);
+                            } else {
+                                reactionBox.setVisibility(View.GONE);
+                                Log.d("EmojiUI", "[PinList] reactionBox 숨김 처리 → userId: " + userId + ", isMine: " + isMine);
+                            }
                         }
                     }
                 }
@@ -473,6 +486,7 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // pin 전환 후 위치 보정: selectedUserId가 바뀌면 위치 보정 실행
         homeViewModel.getSelectedUserId().observe(getViewLifecycleOwner(), userId -> {
             Log.d("BalloonUpdate", "selectedUserId 변경됨: " + userId);
+            String myId = homeViewModel.getMyKakaoId().getValue();
             binding.bubbleContainer.post(() -> {
                 updateAllBalloonPositions();
 
@@ -480,11 +494,32 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     View balloon = entry.getValue();
                     View reactionBox = balloon.findViewById(R.id.reactionBox);
                     if (reactionBox != null) {
+                        String userIdInMap = entry.getKey();   // 해당 말풍선의 사용자 ID
+
+
+                        boolean isMine = userIdInMap != null && userIdInMap.equals(myId);
                         boolean isSelected = entry.getKey().equals(userId);
-                        reactionBox.setVisibility(isSelected ? View.VISIBLE : View.GONE);
-                        Log.d("EmojiUI", "reactionBox for " + entry.getKey() + " → " + (isSelected ? "VISIBLE" : "GONE"));
+                        Log.d("EmojiUI", "선택 비교 → userIdInMap: " + userIdInMap + ", isSelected: " + isSelected + ", isMine: " + isMine);
+                        Log.d("EmojiUI", userIdInMap+" "+myId);
+
+                        if (isSelected && !isMine) {
+                            reactionBox.setVisibility(View.VISIBLE);
+                            Log.d("EmojiUI", "[Select] reactionBox 표시 → userId: " + (userIdInMap != null ? userIdInMap : "null"));
+                        } else {
+                            reactionBox.setVisibility(View.GONE);
+                            Log.d("EmojiUI", "[Select] reactionBox 숨김 → userId: " + (userIdInMap != null ? userIdInMap : "null"));
+                        }
                     }
                 }
+                // ✅ pin형으로 전환된 유저에게도 reactionBox 표시
+                View pinView = binding.includeMainUserInfo.getRoot();
+
+                View pinReactionBox = pinView.findViewById(R.id.pinReactionBox);
+                if (pinReactionBox != null && !userId.equals(myId)) {
+                    pinReactionBox.setVisibility(View.VISIBLE);
+                    Log.d("EmojiUI", "[Select→Pin] reactionBox 표시 (pinView) → userId: " + userId);
+                }
+
             });
         });
 
@@ -545,6 +580,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
 
         if ("myUser".equals(userId)) {
             balloonView.setVisibility(View.GONE);
+            Log.w("EmojiUI", "reactionBox → GONE if (\"myUser\".equals(userId))");
+
         }
 
         balloonView.setOnClickListener(v -> {
@@ -676,8 +713,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             if (previousSubBalloon != null) {
                 previousSubBalloon.setVisibility(View.VISIBLE);// 이전 메인 -> 다시 서브 말풍선
                 if (myId != null && !myId.equals(previousUserId)) {
-                    View iconGroup = getIconGroupFromBalloon(previousSubBalloon);
+                    View pinView = binding.includeMainUserInfo.getRoot();
+                    View iconGroup = getIconGroupFromBalloon(pinView);
                     if (iconGroup != null) iconGroup.setVisibility(View.GONE); // ✅ 숨기기
+                    Log.w("EmojiUI", "reactionBox → GONE if (iconGroup != null) ");
+
                 }
             }
         }
@@ -687,18 +727,20 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             if (newMainBalloon != null) {
                 Log.d("BalloonDebug", "Returned class: " + newMainBalloon.getClass().getName());
                 newMainBalloon.setVisibility(View.GONE);  // 서브 말풍선 숨기고
+                Log.w("EmojiUI", "newMainBalloon.setVisibility(View.GONE)");
+
                 updateAllBalloonPositions();
 
                 if (myId != null && !myId.equals(newSelectedUserId)) {
-                    View iconGroup = getIconGroupFromBalloon(newMainBalloon);
+                    View pinView = binding.includeMainUserInfo.getRoot();
+                    View iconGroup = getIconGroupFromBalloon(pinView);
+                    setupEmojiListeners(pinView, newSelectedUserId);
                     if (iconGroup == null) {
                         Log.e("BalloonDebug", "iconGroupPin not found in main user pin view");
                     } else {
                         Log.d("BalloonDebug", "Setting iconGroupPin visible");
                         iconGroup.setVisibility(View.VISIBLE);
                     }
-
-                    setupEmojiListeners(newMainBalloon, newSelectedUserId);
                 }
             }
 
@@ -718,24 +760,24 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
     }
 
     private View getIconGroupFromBalloon(View balloonView) {
-        View reactionBox = balloonView.findViewById(R.id.reactionBox); // reactionBox 찾기
-        if (reactionBox == null) {
+        if (balloonView.findViewById(R.id.mainNickname) != null) {
+            Log.d("BalloonDebug", "This is a pinView");
+        } else {
+            Log.d("BalloonDebug", "This is likely a bubbleView");
+        }
+        View pinReactionBox = balloonView.findViewById(R.id.pinReactionBox); // reactionBox 찾기
+        if (pinReactionBox == null) {
             Log.e("BalloonDebug", "reactionBox not found in balloonView");
             return null;
         }
 
-        View iconGroupPin = reactionBox.findViewById(R.id.iconGroupPin); // 그 안에서 iconGroupPin 찾기
-        if (iconGroupPin == null) {
-            Log.e("BalloonDebug", "iconGroupPin not found in reactionBox");
+        View pinIconGroup = pinReactionBox.findViewById(R.id.pinIconGroup); // 그 안에서 iconGroupPin 찾기
+        if (pinIconGroup == null) {
+            Log.e("BalloonDebug", "iconGroupPin not found in pinReactionBox");
             return null;
         }
 
-        View iconGroup = iconGroupPin.findViewById(R.id.iconGroup); // 최종 타겟
-        if (iconGroup == null) {
-            Log.e("BalloonDebug", "iconGroup not found in iconGroupPin");
-        }
-
-        return iconGroup;
+        return pinIconGroup;
     }
 
 
@@ -743,13 +785,13 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         //if(balloonView == null){Log.e("EmojiUI", "balloonView null");}
         //else{Log.e("EmojiUI", balloonView.toString());}
         Log.e("EmojiUI", "set "+userId);
-        View reactionBox = balloonView.findViewById(R.id.reactionBox);
-        if (reactionBox == null) {
-            Log.e("EmojiUI", "reactionBox null");
+        View pinReactionBox = balloonView.findViewById(R.id.pinReactionBox);
+        if (pinReactionBox == null) {
+            Log.e("EmojiUI", "pinReactionBox null");
             return;
         }
 
-        View iconGroup = reactionBox.findViewById(R.id.iconGroupPin);
+        View iconGroup = pinReactionBox.findViewById(R.id.pinIconGroup);
         if (iconGroup == null) {
             Log.e("EmojiUI", "iconGroupPin null");
             return;
@@ -764,17 +806,19 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
             int fullRes = 0;
 
             if (v.getId() == R.id.icon_heart) {
-                clicked = "heart"; fullRes = R.drawable.ic_heart_full;
+                clicked = "best"; fullRes = R.drawable.ic_heart_full;
             } else if (v.getId() == R.id.icon_funny) {
                 clicked = "funny"; fullRes = R.drawable.ic_funny_full;
             } else if (v.getId() == R.id.icon_thumb) {
-                clicked = "thumb"; fullRes = R.drawable.ic_thumb_full;
+                clicked = "like"; fullRes = R.drawable.ic_thumb_full;
             } else if (v.getId() == R.id.icon_sad) {
                 clicked = "sad"; fullRes = R.drawable.ic_sad_full;
-            }
+            }//선택->clicked에 이름 저장
 
-            if (clicked != null) {
-                boolean isSame = clicked.equals(currentSelectedReaction);
+            if (clicked != null) {//clicked에 이름이 있으면 선택된 상태
+                String currentEmoji = homeViewModel.getCurrentEmojiForUser(userId); // 현재 유저에 대한 선택된 이모지를 가져옴
+                boolean isSame = clicked.equals(currentEmoji);
+                //기존 이모지와 선택한 이모지 비교
 
                 // 모두 초기화
                 heart.setImageResource(R.drawable.ic_heart_empty);
@@ -782,13 +826,18 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                 thumb.setImageResource(R.drawable.ic_thumb_empty);
                 sad.setImageResource(R.drawable.ic_sad_empty);
 
-                if (!isSame) {
-                    ((ImageView) v).setImageResource(fullRes);
-                    currentSelectedReaction = clicked;
+                if (!isSame) {//기존 이모지와 선택한 이모지 다르면
+                    ((ImageView) v).setImageResource(fullRes);//이미지 변경
+
                     homeViewModel.sendReactionToServer(clicked, userId); // 서버 반영
-                } else {
+                    homeViewModel.setCurrentEmojiForUser(userId, clicked);//현재 선택한 이모지 등록
+                } else {//같으면
                     currentSelectedReaction = null;
-                    homeViewModel.sendReactionToServer(null, userId); // 서버에서 제거
+                    //userId: newSelectedUserId
+                    if (homeViewModel.getCurrentEmojiForUser(userId) != null) {
+                        homeViewModel.sendReactionToServer(null, userId);
+                        homeViewModel.setCurrentEmojiForUser(userId, null);
+                    }
                 }
             }
         };
@@ -891,8 +940,10 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         currentSelectedReaction = null;
 
         // 이모지 박스 숨기기
-        View reactionBox = mainUserInfoBinding.getRoot().findViewById(R.id.reactionBox);
-        if (reactionBox != null) reactionBox.setVisibility(View.GONE);
+        View pinReactionBox = mainUserInfoBinding.getRoot().findViewById(R.id.pinReactionBox);
+        if (pinReactionBox != null) pinReactionBox.setVisibility(View.GONE);
+        Log.w("EmojiUI", "pinReactionBox → GONE if (pinReactionBox != null)");
+
 
         Log.d("HomeFragment", "showMyPinUI(): 내 pin으로 복원됨");
     }

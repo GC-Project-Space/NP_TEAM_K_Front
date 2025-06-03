@@ -91,6 +91,9 @@ public class LoginActivity extends AppCompatActivity {
             String guestId = "guest_" + UUID.randomUUID().toString().substring(0, 8);
             Log.d("GuestLogin", "임시 ID: " + guestId);
 
+            // UserRepository에 저장 (DataStore에 저장)
+            userRepository.saveKakaoId(guestId);
+
             //게스트 아이디로 로그인
             loginApi(guestId);
 

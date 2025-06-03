@@ -2,10 +2,18 @@ package com.example.np_team_k.repository;
 
 import android.content.Context;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.LiveDataReactiveStreams;
+
 import com.example.np_team_k.data.UserPreferences;
 import com.example.np_team_k.domain.model.User;
 
+import org.reactivestreams.Publisher;
+
 import kotlinx.coroutines.flow.Flow;
+import kotlinx.coroutines.reactive.ReactiveFlowKt;
+
+import java.util.UUID;
 
 // 저장 조회 추상화
 public class UserRepository {
@@ -38,4 +46,27 @@ public class UserRepository {
     public Flow<Boolean> getIsMemberFlow() {
         return UserPreferences.INSTANCE.getIsMember(context);
     }
+
+    // [추가] Flow → LiveData 변환
+    public LiveData<String> getKakaoIdLiveData() {
+        Flow<String> flow = getKakaoIdFlow();
+        Publisher<String> publisher = ReactiveFlowKt.asPublisher(flow);
+        return LiveDataReactiveStreams.fromPublisher(publisher);
+    }
+
+    public void saveKakaoId(String kakaoId) {
+        String safeId = (kakaoId != null && !kakaoId.isEmpty())
+                ? kakaoId
+                : "guest_" + UUID.randomUUID().toString();
+
+        // 기존 saveUser() 재활용
+        UserPreferences.INSTANCE.saveUser(
+                context,
+                safeId,
+                "게스트",  // 닉네임 기본값 설정
+                false     // isMember = false
+        );
+    }
+
+
 }

@@ -4,7 +4,7 @@
     <data>
         <variable
             name="item"
-            type="com.example.np_team_k.ui.my.model.MyStateItem" />
+            type="com.example.np_team_k.network.StatusMineResponse" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,7 +18,7 @@
             android:id="@+id/text_state_content"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{item.content}"
+            android:text="@{item.message}"
             android:textColor="@color/black80"
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"

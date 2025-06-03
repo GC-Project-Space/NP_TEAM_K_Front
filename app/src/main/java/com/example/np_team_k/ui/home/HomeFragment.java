@@ -7,8 +7,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -34,7 +32,6 @@ import com.example.np_team_k.databinding.ViewMainUserInfoBinding;
 import com.example.np_team_k.network.HomeAPI;
 import com.example.np_team_k.network.PinRequest;
 import com.example.np_team_k.network.PinResponse;
-import com.example.np_team_k.network.ReactionAPI;
 import com.example.np_team_k.network.RetrofitClient;
 import com.example.np_team_k.repository.UserRepository;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -47,19 +44,13 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.gson.Gson;
 
 import com.bumptech.glide.Glide;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -160,11 +151,11 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         }
 
 
-        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), message -> {  // 추가된 코드
-            if (message != null) {  // 추가된 코드
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();  // 추가된 코드
-            }  // 추가된 코드
-        });  // 추가된 코드
+//        homeViewModel.getErrorMessage().observe(getViewLifecycleOwner(), message -> {  // 추가된 코드
+//            if (message != null) {  // 추가된 코드
+//                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();  // 추가된 코드
+//            }  // 추가된 코드
+//        });  // 추가된 코드
 
         // 현재 위치를 기준으로 핀 데이터를 가져옴
         // 현재 위치 설정
@@ -305,8 +296,8 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
         // Glide를 이용해서 프로필 이미지 불러오기
         Glide.with(this)
                 .load(profileImageUrl)
-                .placeholder(R.drawable.basicprofile)  // 로딩 중일 때 기본 이미지
-                .error(R.drawable.basicprofile)         // 실패했을 때 기본 이미지
+                .placeholder(R.drawable.ic_basicprofile)  // 로딩 중일 때 기본 이미지
+                .error(R.drawable.ic_basicprofile)         // 실패했을 때 기본 이미지
                 .circleCrop()                            // 동그랗게 자르기
                 .into(profileImage);
 

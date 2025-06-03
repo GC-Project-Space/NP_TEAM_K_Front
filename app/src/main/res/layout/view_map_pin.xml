@@ -16,7 +16,7 @@
 
         <ImageView
             android:id="@+id/myProfileImage"
-            android:src="@drawable/basicprofile"
+            android:src="@drawable/ic_basicprofile"
             android:layout_width="38dp"
             android:layout_height="38dp"
             android:layout_gravity="center"

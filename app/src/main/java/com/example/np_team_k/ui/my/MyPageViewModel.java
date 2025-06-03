@@ -32,6 +32,7 @@ public class MyPageViewModel extends ViewModel {
             public void onResponse(Call<List<StatusMineResponse>> call, Response<List<StatusMineResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     Log.d("MyPageAPI", "API 호출 성공! 데이터 개수: " + response.body().size());
+                    statusList.setValue(response.body());
                 } else {
                     Log.e("MyPageAPI", "API 응답 실패! 코드: " + response.code());
                     Log.e("MyPageAPI", "에러 메시지: " + response.errorBody());

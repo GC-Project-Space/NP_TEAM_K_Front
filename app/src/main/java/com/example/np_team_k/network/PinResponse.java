@@ -15,12 +15,12 @@ public class PinResponse {
         private String id;
         private String writerKakaoId;
         private String message;
-        private Location location;  // ✅ 기존 latitude, longitude를 중첩 구조 Location으로
+        private Location location;  // 기존 latitude, longitude를 중첩 구조 Location으로
         private ReactionCounts reactionCounts;
         private String createdAt;
         private String myReaction;
 
-        // ✅ 중첩 클래스: Location
+        // 중첩 클래스: Location
         public static class Location {
             private double latitude;
             private double longitude;

@@ -65,8 +65,9 @@
             android:maxLength="20"
             android:gravity="center|top"
             android:textColor="@android:color/black"
+            android:textSize="15dp"
             android:paddingTop="9dp"
-            android:paddingHorizontal="30dp"
+            android:paddingHorizontal="10dp"
             android:layout_marginBottom="4dp"/>
 
 
@@ -81,6 +82,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="닉네임"
+            android:textSize="10dp"
             android:gravity="center"
             android:paddingHorizontal="10dp"
             android:textColor="@android:color/black"

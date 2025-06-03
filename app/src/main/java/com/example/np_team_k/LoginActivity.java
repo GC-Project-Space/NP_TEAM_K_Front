@@ -10,24 +10,38 @@ import android.util.Log;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.np_team_k.domain.model.User;
+import com.example.np_team_k.network.login.LoginManager;
+import com.example.np_team_k.network.login.LoginResponse;
+import com.example.np_team_k.repository.UserRepository;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.common.KakaoSdk;
 import com.kakao.sdk.user.UserApiClient;
 
 import java.security.MessageDigest;
-
+import java.util.UUID; //추가: guest ID 생성을 위한 UUID
 
 public class LoginActivity extends AppCompatActivity {
 
     private static final String KAKAO_NATIVE_APP_KEY = "9ff2b589f0a0c62b3b8b633d6c167074";
+    // 데이터 바인딩 사용
+    private UserRepository userRepository;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
+        //todo datastore에 저장된 카카오 아이디(userId랑 카카오 클라이언트 아이디랑 매핑)
+        // todo  isMember true가 트루면 로그인 스킵하고 mainActivity로 가기
+
         printKeyHash();
 
         KakaoSdk.init(this, KAKAO_NATIVE_APP_KEY);
+
+        // UserRepository 생성
+        userRepository = new UserRepository(this);
 
         ImageButton kakaoLoginButton = findViewById(R.id.kakaoLoginButton);
         kakaoLoginButton.setOnClickListener(view -> {
@@ -36,7 +50,35 @@ public class LoginActivity extends AppCompatActivity {
                     Log.e("KakaoLogin", "로그인 실패", error);
                 } else if (token != null) {
                     Log.i("KakaoLogin", "로그인 성공: " + token.getAccessToken());
-                    goToNextScreen();
+
+
+                    // 카카오 클라이언트 아이디 요청
+                    UserApiClient.getInstance().me((user, meError) -> {
+                        if (meError != null) {
+                            Log.e("KakaoUserInfo", "사용자 정보 요청 실패", meError);
+                        } else {
+                            if (user != null) {
+                                assert user.getId() != null;
+                                String kakaoId = user.getId().toString(); // 클라이언트 고유 ID
+                                Log.i("KakaoUserInfo", "사용자 ID: " + kakaoId);
+
+                                // 로그인 API 연결
+                                loginApi(kakaoId);
+
+                                String nickname = "임시 닉네임";
+
+                                // datastore에 카카오클라이언트 아이디 저장
+                                userRepository.saveUser(new User(kakaoId, nickname, true));
+
+                                // ✅ MainActivity로 ID 전달
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                intent.putExtra("kakaoId", kakaoId);
+                                startActivity(intent);
+                                finish();
+                            }
+                        }
+                        return null;
+                    });
                 }
                 return null;
             });
@@ -45,7 +87,21 @@ public class LoginActivity extends AppCompatActivity {
         TextView guestLoginText = findViewById(R.id.guestLoginText);
         guestLoginText.setOnClickListener(view -> {
             Log.i("GuestLogin", "비회원 로그인 시도");
-            goToNextScreen();
+            //임의의 guest ID 생성 (UUID 일부)
+            String guestId = "guest_" + UUID.randomUUID().toString().substring(0, 8);
+            Log.d("GuestLogin", "임시 ID: " + guestId);
+
+            // UserRepository에 저장 (DataStore에 저장)
+            userRepository.saveKakaoId(guestId);
+
+            //게스트 아이디로 로그인
+            loginApi(guestId);
+
+            //다음 화면으로 ID 전달
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            intent.putExtra("kakaoId", guestId);
+            startActivity(intent);
+            finish();
         });
     }
 
@@ -78,6 +134,23 @@ public class LoginActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e("KeyHash", "키 해시 추출 실패", e);
         }
+    }
+
+    // 로그인 API 콜
+    private void loginApi(String kakaoId){
+        LoginManager.login(kakaoId, new LoginManager.LoginCallback() {
+
+            @Override
+            public void onSuccess(LoginResponse response) {
+                Log.d("로그인 API 성공", response.getNickname());
+                // TODO: 다음 화면 이동 등 처리
+            }
+
+            @Override
+            public void onFailure() {
+                Log.e("로그인 실패", "서버 오류 또는 네트워크 문제");
+            }
+        });
     }
 
 

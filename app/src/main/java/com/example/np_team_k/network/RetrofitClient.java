@@ -10,6 +10,9 @@ public class RetrofitClient {
     private static Retrofit retrofit = null;
     private static final String BASE_URL = "http://34.47.69.253/";
 
+    // HomeAPI 인스턴스 제공 (Singleton)
+    private static HomeAPI homeAPI;
+
     public static Retrofit getClient() {
         if (retrofit == null) {
             HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
@@ -28,5 +31,12 @@ public class RetrofitClient {
                     .build();
         }
         return retrofit;
+    }
+    // HomeAPI 인스턴스 반환 메서드 추가
+    public static HomeAPI getHomeAPI() {
+        if (homeAPI == null) {
+            homeAPI = getClient().create(HomeAPI.class);
+        }
+        return homeAPI;
     }
 }

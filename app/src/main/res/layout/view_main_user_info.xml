@@ -7,18 +7,68 @@
         android:orientation="vertical"
         android:gravity="center_horizontal">
 
+        <FrameLayout
+            android:id="@+id/reactionBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
+            android:layout_gravity="left"
+            android:visibility="gone"> <!-- 기본 감춤 -->
+
+            <LinearLayout
+                android:id="@+id/iconGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:id="@+id/icon_heart"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_heart_empty" />
+
+                <ImageView
+                    android:id="@+id/icon_funny"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_funny_empty" />
+
+                <ImageView
+                    android:id="@+id/icon_thumb"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="4dp"
+                    android:src="@drawable/ic_thumb_empty" />
+
+                <ImageView
+                    android:id="@+id/icon_sad"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_sad_empty" />
+            </LinearLayout>
+
+        </FrameLayout>
+
         <!-- 메인 유저 말풍선 -->
-        <TextView
+        <EditText
             android:id="@+id/mainMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/speech_bubble_main"
-            android:text="메인메시지"
+            android:hint="메시지를 입력하세요"
+            android:imeOptions="actionDone"
+            android:singleLine="true"
+            android:maxLength="20"
             android:gravity="center|top"
             android:textColor="@android:color/black"
             android:paddingTop="9dp"
             android:paddingHorizontal="30dp"
             android:layout_marginBottom="4dp"/>
+
 
         <!-- 핀 + 프로필 (외부 view_map_pin.xml 파일 사용) -->
         <include

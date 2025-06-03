@@ -8,7 +8,7 @@
         android:gravity="center_horizontal">
 
         <FrameLayout
-            android:id="@+id/reactionBox"
+            android:id="@+id/pinReactionBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -16,7 +16,7 @@
             android:visibility="gone"> <!-- 기본 감춤 -->
 
             <LinearLayout
-                android:id="@+id/iconGroup"
+                android:id="@+id/pinIconGroup"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"

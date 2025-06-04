@@ -15,6 +15,8 @@ import com.example.np_team_k.network.HomeAPI;  // 추가된 코드
 import com.example.np_team_k.network.RetrofitClient;  // 추가된 코드
 import com.example.np_team_k.network.PinResponse;
 import com.google.gson.Gson;
+
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -25,6 +27,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +53,8 @@ public class HomeViewModel extends ViewModel {
     private final HomeAPI homeAPI = RetrofitClient.getClient().create(HomeAPI.class);
     private final UserRepository userRepository;
     private String currentSelectedReaction = null;
+    private final Map<String, String> userIdToCurrentEmoji = new HashMap<>();
+
 
     public HomeViewModel(UserRepository userRepository) {
         // 기존 값들 유지
@@ -121,13 +126,30 @@ public class HomeViewModel extends ViewModel {
     public LiveData<String> getMyMessage() { return myMessage; }
     public void setMyMessage(String message) { myMessage.setValue(message); }
 
-    public String getCurrentSelectedReaction() {
-        return currentSelectedReaction;
+    // 특정 유저의 현재 선택된 이모지를 반환
+    public String getCurrentEmojiForUser(String userId) {
+        return userIdToCurrentEmoji.getOrDefault(userId, null);
     }
 
-    public void setCurrentSelectedReaction(String reaction) {
-        this.currentSelectedReaction = reaction;
+    // 특정 유저의 이모지 상태 저장
+    public void setCurrentEmojiForUser(String userId, String emoji) {
+        if (userId != null && emoji != null) {
+            userIdToCurrentEmoji.put(userId, emoji);
+        }
     }
+
+    // 특정 유저의 이모지 상태 삭제 (취소시 호출)
+    public void clearCurrentEmojiForUser(String userId) {
+        if (userId != null) {
+            userIdToCurrentEmoji.remove(userId);
+        }
+    }
+
+    // 전체 이모지 상태 초기화 (예: 화면 리셋 시)
+    public void clearAllEmojiStates() {
+        userIdToCurrentEmoji.clear();
+    }
+
 
 
 
@@ -181,7 +203,8 @@ public class HomeViewModel extends ViewModel {
         List<PinResponse.Pin> pins = pinList.getValue();
         if (pins != null) {
             for (PinResponse.Pin pin : pins) {
-                if (pin.getWriterKakaoId().equals(userId)) {
+                String writerId = pin.getWriterKakaoId();
+                if (userId != null && userId.equals(writerId)) {
                     return pin.getId();
                 }
             }
@@ -189,8 +212,17 @@ public class HomeViewModel extends ViewModel {
         return null;
     }
 
+    // 중복 전송 방지용 플래그
+    private boolean isRequestInProgress = false;
+
+
     // 이모지 서버 전송 메서드 (리스트와 공통 사용 가능하도록 통일)
     public void sendReactionToServer(String emojiType, String targetUserId) {
+        if (isRequestInProgress) {
+            Log.w("ReactionDebug", "요청 중입니다. 중복 요청 방지됨");
+            return;
+        }
+
         String myId = myKakaoId.getValue();
         if (myId == null || targetUserId == null) {
             Log.e("HomeViewModel", "이모지 전송 실패: 사용자 ID 누락");
@@ -199,42 +231,81 @@ public class HomeViewModel extends ViewModel {
 
         String pinId = getPinIdByUserId(targetUserId);
         if (pinId == null) {
-            Log.e("HomeViewModel", "이모지 전송 실패: 해당 사용자 핀 ID 없음" + targetUserId + ")");
+            Log.e("HomeViewModel", "이모지 전송 실패: 해당 사용자 핀 ID 없음 (" + targetUserId + ")");
             return;
         }
 
+        // 🛡️ 삭제 요청인데 currentSelectedReaction이 null이면 무시
+        if (emojiType == null && currentSelectedReaction == null) {
+            Log.e("ReactionDebug", "삭제 요청 무시됨: 현재 선택된 이모지 없음");
+            return;
+        }
+
+        isRequestInProgress = true;
+
         Call<ResponseBody> call;
         if (emojiType != null) {
-            // 새 이모지 전송
-            currentSelectedReaction = emojiType; // 현재 선택 상태 갱신
             Log.d("ReactionDebug", "전송 요청 → pinId=" + pinId + ", emoji=" + emojiType + ", sender=" + myId);
             call = homeAPI.addReaction(pinId, emojiType, myId);
         } else {
-            // 삭제 요청 (이전 선택값이 있어야 함)
-            if (currentSelectedReaction == null) {
-                Log.e("ReactionDebug", "삭제 요청 실패: 선택된 이모지 없음");
-                return;
-            }
             Log.d("ReactionDebug", "삭제 요청 → pinId=" + pinId + ", emoji=" + currentSelectedReaction + ", sender=" + myId);
             call = homeAPI.removeReaction(pinId, currentSelectedReaction, myId);
-            currentSelectedReaction = null; // 상태 초기화
         }
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                isRequestInProgress = false;
+
                 if (response.isSuccessful()) {
-                    Log.d("ReactionDebug", "이모지 " + (emojiType == null ? "삭제" : "전송") + " 성공");
+                    if (emojiType == null) {
+                        Log.d("ReactionDebug", "이모지 삭제 성공");
+                        currentSelectedReaction = null;
+                        setCurrentEmojiForUser(targetUserId, null);
+                    } else {
+                        Log.d("ReactionDebug", "이모지 전송 성공");
+                        currentSelectedReaction = emojiType;
+                        setCurrentEmojiForUser(targetUserId, emojiType);
+                    }
                 } else {
-                    Log.e("ReactionDebug", "서버 응답 실패: " + response.code());
+                    try {
+                        String errorMsg = response.errorBody() != null ? response.errorBody().string() : "없음";
+                        Log.e("ReactionDebug", "서버 응답 실패: " + response.code() + " - " + errorMsg);
+                    } catch (IOException e) {
+                        Log.e("ReactionDebug", "서버 응답 실패 (본문 파싱 실패): " + response.code(), e);
+                    }
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                isRequestInProgress = false;
                 Log.e("ReactionDebug", "이모지 전송 실패: 네트워크 오류", t);
             }
         });
+    }
+
+
+
+
+
+
+    private Callback<ResponseBody> getReactionCallback(String action) {
+        return new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    Log.d("ReactionDebug", "이모지 " + action + " 성공");
+                } else {
+                    Log.e("ReactionDebug", "이모지 " + action + " 실패: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("ReactionDebug", "이모지 " + action + " 실패: 네트워크 오류", t);
+            }
+        };
     }
 
     // wrapper 클래스 (LatLng 사용 시 필요)

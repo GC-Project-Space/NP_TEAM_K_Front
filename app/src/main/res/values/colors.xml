@@ -8,6 +8,9 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
+    <color name="main_orange">#FF6F00</color>
+    <color name="selected_button">#FFBB00</color>
+    <color name="unselected_button">#EEEEEE</color>
     <color name="gray100">#F5F5F5</color>
     <color name="gray300">#E0E0E0</color>
     <color name="gray700">#616161</color> <!-- 선택된 글씨 색 -->

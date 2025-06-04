@@ -250,28 +250,24 @@ public class HomeViewModel extends ViewModel {
 
     //Pin 서버 전송 로직
     public void sendPinToServer(String message, double latitude, double longitude) {
-        String kakaoId = myKakaoId.getValue();
+       // String kakaoId = myKakaoId.getValue();
+        String kakaoId = "1234";
         if (kakaoId == null || kakaoId.isEmpty()) {
             errorMessage.setValue("카카오 ID가 설정되지 않았습니다.");
             return;
         }
 
-        // createdAt 자동 생성 (ISO 8601 형식)
-        String createdAt = ZonedDateTime.now().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-
-        // ✅ 초기 감정 카운트: 0으로 세팅
-        PinRequest.ReactionCounts reactions = new PinRequest.ReactionCounts(0, 0, 0, 0);
-
-        // ✅ PinRequest 객체 생성
+        //PinRequest 객체 생성
         PinRequest request = new PinRequest(kakaoId, message, latitude, longitude);
 
-        // ✅ Retrofit 요청 전송
+        // Retrofit 요청 전송
         HomeAPI api = RetrofitClient.getClient().create(HomeAPI.class);
         api.postStatus(request).enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
                     Log.d("PinSend", "메시지 등록 성공");
+                    errorMessage.setValue("메시지 등록 성공");
                     // 서버 반영 후 최신 핀 리스트 다시 불러오기
                     fetchPins(latitude, longitude, "distance", kakaoId);
                 } else {

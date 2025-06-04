@@ -353,40 +353,42 @@ public class HomeFragment extends Fragment implements OnMapReadyCallback {
                     LatLng fixedLocation = myCurrentLocation;  // 🔒 고정 위치 저장
 
                     // 1. 서버로 등록
-                    PinRequest pinRequest = new PinRequest(kakaoId, message, fixedLocation.latitude, fixedLocation.longitude);
-                    HomeAPI api = RetrofitClient.getClient().create(HomeAPI.class);
-                    api.postStatus(pinRequest).enqueue(new Callback<Void>() {
-                        @Override
-                        public void onResponse(Call<Void> call, Response<Void> response) {
-                            if (response.isSuccessful()) {
-                                Toast.makeText(getContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+                    homeViewModel.sendPinToServer(message, fixedLocation.latitude, fixedLocation.longitude);
 
-                                // 2. 입력창 초기화 및 재사용 가능 상태로 되돌림
-                                inputField.setEnabled(true);           // 다시 활성화
-                                inputField.setText("");                // 입력창 비움
-                                messageSubmitted = false;              // 플래그 초기화
-                                inputField.clearFocus();
-
-                                // 3. ViewModel 상태 초기화 (현재 메시지는 없는 상태)
-                                homeViewModel.setMyMessage("");
-
-                                // 4. 서버에서 전체 pin 재조회
-                                homeViewModel.fetchPins(
-                                        fixedLocation.latitude, fixedLocation.longitude,
-                                        "distance", kakaoId
-                                );
-                            } else {
-                                Toast.makeText(getContext(), "등록 실패", Toast.LENGTH_SHORT).show();
-                                messageSubmitted = false;
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<Void> call, Throwable t) {
-                            Toast.makeText(getContext(), "네트워크 오류: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                            messageSubmitted = false;
-                        }
-                    });
+//                    PinRequest pinRequest = new PinRequest(kakaoId, message, fixedLocation.latitude, fixedLocation.longitude);
+//                    HomeAPI api = RetrofitClient.getClient().create(HomeAPI.class);
+//                    api.postStatus(pinRequest).enqueue(new Callback<Void>() {
+//                        @Override
+//                        public void onResponse(Call<Void> call, Response<Void> response) {
+//                            if (response.isSuccessful()) {
+//                                Toast.makeText(getContext(), "등록 완료", Toast.LENGTH_SHORT).show();
+//
+//                                // 2. 입력창 초기화 및 재사용 가능 상태로 되돌림
+//                                inputField.setEnabled(true);           // 다시 활성화
+//                                inputField.setText("");                // 입력창 비움
+//                                messageSubmitted = false;              // 플래그 초기화
+//                                inputField.clearFocus();
+//
+//                                // 3. ViewModel 상태 초기화 (현재 메시지는 없는 상태)
+//                                homeViewModel.setMyMessage("");
+//
+//                                // 4. 서버에서 전체 pin 재조회
+//                                homeViewModel.fetchPins(
+//                                        fixedLocation.latitude, fixedLocation.longitude,
+//                                        "distance", kakaoId
+//                                );
+//                            } else {
+//                                Toast.makeText(getContext(), "등록 실패", Toast.LENGTH_SHORT).show();
+//                                messageSubmitted = false;
+//                            }
+//                        }
+//
+//                        @Override
+//                        public void onFailure(Call<Void> call, Throwable t) {
+//                            Toast.makeText(getContext(), "네트워크 오류: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+//                            messageSubmitted = false;
+//                        }
+//                    });
                 }
 
                 return true;

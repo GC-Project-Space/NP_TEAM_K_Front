@@ -24,7 +24,7 @@ public interface HomeAPI {
     );
 
     // 상태 등록 (POST)
-    @POST("/status")
+    @POST("status")
     Call<Void> postStatus(@Body PinRequest request);
 
     // 상태 삭제 (DELETE)

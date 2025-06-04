@@ -8,17 +8,11 @@ public class PinRequest {
     private String writerKakaoId;
     private String message;
     private Location location;
-    private ReactionCounts reactionCounts;
-    private String createdAt;
-    private String myReaction;
 
     public PinRequest(String writerKakaoId, String message, double latitude, double longitude) {
         this.writerKakaoId = writerKakaoId;
         this.message = message;
         this.location = new Location(latitude, longitude);
-        this.createdAt = getCurrentTime();  // ✅ 현재 시각 자동 설정
-        this.reactionCounts = new ReactionCounts(); // ✅ 기본값 0으로 초기화
-        this.myReaction = null;
     }
 
     private String getCurrentTime() {
@@ -59,19 +53,12 @@ public class PinRequest {
             this.funny = funny;
         }
 
-        public int getLike() { return like; }
-        public int getSad() { return sad; }
-        public int getBest() { return best; }
-        public int getFunny() { return funny; }
     }
 
 
-    // ✅ Getter (Retrofit에서 필요 시 사용)
+    // Getter (Retrofit에서 필요 시 사용)
     public String getWriterKakaoId() { return writerKakaoId; }
     public String getMessage() { return message; }
     public Location getLocation() { return location; }
-    public ReactionCounts getReactionCounts() { return reactionCounts; }
-    public String getCreatedAt() { return createdAt; }
-    public String getMyReaction() { return myReaction; }
 
 }
